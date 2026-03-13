@@ -18,7 +18,6 @@ import { syncCanvasPositionsToStore } from '@/canvas/use-canvas-sync'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
 import { zoomToFitContent } from '@/canvas/use-fabric-canvas'
 import { isPenToolActive, penToolKeyDown } from '@/canvas/pen-tool'
-import { useTimelineStore } from '@/stores/timeline-store'
 import { playV2, pauseV2, isPlayingV2 } from '@/animation/use-playback-controller'
 import type { ToolType } from '@/types/canvas'
 

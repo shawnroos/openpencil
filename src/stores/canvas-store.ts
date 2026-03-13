@@ -186,13 +186,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       if (typeof data.codePanelOpen === 'boolean') set({ codePanelOpen: data.codePanelOpen })
       // Migrate stale localStorage values from old tab names
       if (data.rightPanelTab) {
-        const migrated = data.rightPanelTab === 'design' || data.rightPanelTab === 'animate'
-          ? 'create'
-          : data.rightPanelTab === 'code'
-            ? 'code'
-            : data.rightPanelTab === 'vibe'
-              ? 'vibe'
-              : 'create' as RightPanelTab
+        const raw = data.rightPanelTab as string
+        const migrated: RightPanelTab =
+          raw === 'design' || raw === 'animate' ? 'create'
+          : raw === 'code' ? 'code'
+          : raw === 'vibe' ? 'vibe'
+          : 'create'
         set({ rightPanelTab: migrated })
       }
     } catch { /* ignore */ }
