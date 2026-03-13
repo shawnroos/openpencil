@@ -69,6 +69,8 @@ export interface VideoDecoderHandle {
   resizeCanvas(displayWidth: number, displayHeight: number): void
   /** Release all resources. Idempotent. */
   dispose(): void
+  /** Dev-only debug accessor — not part of public contract. */
+  readonly __debug?: { audioContext: AudioContext | null; state: string }
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +271,10 @@ export async function createVideoDecoder(
 
       get isPlaying(): boolean {
         return state.status === 'playing'
+      },
+
+      get __debug() {
+        return { audioContext, state: state.status }
       },
 
       async drawFrame(timeSec: number): Promise<void> {
