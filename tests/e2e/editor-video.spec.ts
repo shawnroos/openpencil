@@ -22,23 +22,6 @@ test.beforeEach(async ({ page }) => {
   test.skip(!hasWebCodecs, 'WebCodecs not available in this browser')
 })
 
-/** Helper to read a pixel from the decoder canvas */
-function readPixelScript() {
-  return `
-    const nodeId = (window).__testVideoNodeId;
-    const handle = (window).__testHarness.getVideoDecoder(nodeId);
-    if (!handle) return null;
-    const ctx = handle.canvas.getContext('2d');
-    if (!ctx) return null;
-    const p = ctx.getImageData(
-      Math.floor(handle.canvas.width / 2),
-      Math.floor(handle.canvas.height / 2),
-      1, 1
-    ).data;
-    return [p[0], p[1], p[2]];
-  `
-}
-
 /**
  * Import fixture video programmatically: upload file, create decoder,
  * register in store. Stashes nodeId on window.__testVideoNodeId.

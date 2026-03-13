@@ -63,10 +63,9 @@ test.describe('Video Decoder Contract (Layer B)', () => {
     expect(result.height).toBe(240)
 
     // Red pixel: R>200, G<50, B<50
-    const [r, g, b] = result.pixel
-    expect(r).toBeGreaterThan(200)
-    expect(g).toBeLessThan(50)
-    expect(b).toBeLessThan(50)
+    expect(result.pixel![0]).toBeGreaterThan(200)
+    expect(result.pixel![1]).toBeLessThan(50)
+    expect(result.pixel![2]).toBeLessThan(50)
   })
 
   test('decodes green at t=1.5s and blue at t=2.5s', async ({ page }) => {
