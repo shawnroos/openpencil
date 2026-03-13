@@ -466,52 +466,60 @@ export default function AIChatPanel({ embedded = false }: { embedded?: boolean }
     <div
       ref={panelRef}
       className={cn(
-        'absolute z-50 flex w-[320px] flex-col overflow-hidden rounded-xl border border-border bg-card/95 shadow-2xl backdrop-blur-sm',
-        !dragStyle && CORNER_CLASSES[panelCorner],
+        embedded
+          ? 'flex flex-1 flex-col overflow-hidden bg-card'
+          : cn(
+            'absolute z-50 flex w-[320px] flex-col overflow-hidden rounded-xl border border-border bg-card/95 shadow-2xl backdrop-blur-sm',
+            !dragStyle && CORNER_CLASSES[panelCorner],
+          ),
       )}
-        style={{ ...dragStyle, height: panelHeight }}
+      style={embedded ? undefined : { ...dragStyle, height: panelHeight }}
     >
-      {/* --- Resize Handle (Top Edge) --- */}
-      <div
-        className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-50 hover:bg-primary/20 transition-colors group flex items-center justify-center"
-        onPointerDown={handleResizeStart}
-        onPointerMove={handleResizeMove}
-        onPointerUp={handleResizeEnd}
-      >
-         {/* Visual grip pill */}
-         <div className="w-8 h-1 rounded-full bg-border group-hover:bg-primary/50 transition-colors" />
-      </div>
-
-      {/* --- Header (draggable) --- */}
-      <div
-        className="flex items-center justify-between px-1 py-1 border-b border-border cursor-grab active:cursor-grabbing select-none"
-        onPointerDown={handleDragStart}
-        onPointerMove={handleDragMove}
-        onPointerUp={handleDragEnd}
-      >
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={toggleMinimize}
-            title={t('ai.collapse')}
+      {/* --- Floating-only: Resize Handle + Draggable Header --- */}
+      {!embedded && (
+        <>
+          <div
+            className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-50 hover:bg-primary/20 transition-colors group flex items-center justify-center"
+            onPointerDown={handleResizeStart}
+            onPointerMove={handleResizeMove}
+            onPointerUp={handleResizeEnd}
           >
-            <ChevronDown size={14} />
+            <div className="w-8 h-1 rounded-full bg-border group-hover:bg-primary/50 transition-colors" />
+          </div>
+          <div
+            className="flex items-center justify-between px-1 py-1 border-b border-border cursor-grab active:cursor-grabbing select-none"
+            onPointerDown={handleDragStart}
+            onPointerMove={handleDragMove}
+            onPointerUp={handleDragEnd}
+          >
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon-sm" onClick={toggleMinimize} title={t('ai.collapse')}>
+                <ChevronDown size={14} />
+              </Button>
+              <span className="text-sm font-medium text-foreground max-w-[100px] truncate overflow-hidden text-ellipsis" title={chatTitle}>
+                {chatTitle}
+              </span>
+              {isStreaming && <Loader2 size={13} className="animate-spin text-muted-foreground ml-2" />}
+            </div>
+            <Button variant="ghost" size="icon-sm" onClick={clearMessages} title={t('ai.newChat')}>
+              <Plus size={14} />
+            </Button>
+          </div>
+        </>
+      )}
+
+      {/* --- Embedded header (simpler) --- */}
+      {embedded && (
+        <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-foreground">{chatTitle}</span>
+            {isStreaming && <Loader2 size={12} className="animate-spin text-muted-foreground" />}
+          </div>
+          <Button variant="ghost" size="icon-sm" onClick={clearMessages} title={t('ai.newChat')}>
+            <Plus size={14} />
           </Button>
-          <span className="text-sm font-medium text-foreground max-w-[100px] truncate overflow-hidden text-ellipsis" title={chatTitle}>
-            {chatTitle}
-          </span>
-          {isStreaming && <Loader2 size={13} className="animate-spin text-muted-foreground ml-2" />}
         </div>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={clearMessages}
-          title={t('ai.newChat')}
-        >
-          <Plus size={14} />
-        </Button>
-      </div>
+      )}
 
       {/* --- Messages --- */}
       <div className="min-h-0 flex-1 overflow-y-auto rounded-b-xl bg-background/80 px-3.5 py-3">
