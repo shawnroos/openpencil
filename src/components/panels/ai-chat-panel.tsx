@@ -126,7 +126,7 @@ export function AIChatMinimizedBar() {
  * Expanded AI chat panel — floating, draggable.
  * Only renders when NOT minimized.
  */
-export default function AIChatPanel() {
+export default function AIChatPanel({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useTranslation()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -459,8 +459,8 @@ export default function AIChatPanel() {
     }
   }
 
-  // Don't render when minimized — the minimized bar is rendered by parent
-  if (isMinimized) return null
+  // Don't render when minimized — unless embedded in the Vibe tab
+  if (isMinimized && !embedded) return null
 
   return (
     <div

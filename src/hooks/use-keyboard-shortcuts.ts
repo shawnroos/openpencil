@@ -18,6 +18,8 @@ import { syncCanvasPositionsToStore } from '@/canvas/use-canvas-sync'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
 import { zoomToFitContent } from '@/canvas/use-fabric-canvas'
 import { isPenToolActive, penToolKeyDown } from '@/canvas/pen-tool'
+import { useTimelineStore } from '@/stores/timeline-store'
+import { playV2, pauseV2, isPlayingV2 } from '@/animation/use-playback-controller'
 import type { ToolType } from '@/types/canvas'
 
 const TOOL_KEYS: Record<string, ToolType> = {
@@ -41,6 +43,18 @@ export function useKeyboardShortcuts() {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable
       ) {
+        return
+      }
+
+      // Space: play/pause (always available, not gated on mode)
+      // Space+drag = pan is handled by use-canvas-viewport.ts
+      if (e.key === ' ') {
+        e.preventDefault()
+        if (isPlayingV2()) {
+          pauseV2()
+        } else {
+          playV2()
+        }
         return
       }
 

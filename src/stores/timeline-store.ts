@@ -5,10 +5,6 @@ import type {
 } from '@/types/animation'
 import { getDocumentComposition, setDocumentComposition } from '@/stores/composition-accessors'
 
-// --- Editor Mode ---
-
-export type EditorMode = 'design' | 'animate'
-
 // --- Store Interface ---
 
 interface TimelineStoreState {
@@ -20,7 +16,7 @@ interface TimelineStoreState {
   currentTime: number
   playbackMode: PlaybackMode
   loopEnabled: boolean
-  editorMode: EditorMode
+  timelineExpanded: boolean
 
   // Actions — timeline
   setDuration: (ms: number) => void
@@ -31,8 +27,9 @@ interface TimelineStoreState {
   setPlaybackMode: (mode: PlaybackMode) => void
   toggleLoop: () => void
 
-  // Actions — mode
-  setEditorMode: (mode: EditorMode) => void
+  // Actions — timeline visibility
+  toggleTimeline: () => void
+  setTimelineExpanded: (expanded: boolean) => void
 
   // Composition (reads from document store, falls back to local duration/fps)
   getCompositionDuration: () => number
@@ -49,7 +46,7 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
   currentTime: 0,
   playbackMode: 'idle',
   loopEnabled: false,
-  editorMode: 'design',
+  timelineExpanded: false,
 
   // --- Timeline ---
 
@@ -65,9 +62,10 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
 
   toggleLoop: () => set((s) => ({ loopEnabled: !s.loopEnabled })),
 
-  // --- Mode ---
+  // --- Timeline visibility ---
 
-  setEditorMode: (mode) => set({ editorMode: mode }),
+  toggleTimeline: () => set((s) => ({ timelineExpanded: !s.timelineExpanded })),
+  setTimelineExpanded: (expanded) => set({ timelineExpanded: expanded }),
 
   // --- Composition (reads from document store, falls back to local) ---
 

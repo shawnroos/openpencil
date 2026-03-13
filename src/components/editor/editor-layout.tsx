@@ -6,7 +6,7 @@ import BooleanToolbar from './boolean-toolbar'
 import StatusBar from './status-bar'
 import LayerPanel from '@/components/panels/layer-panel'
 import RightPanel from '@/components/panels/right-panel'
-import AIChatPanel, { AIChatMinimizedBar } from '@/components/panels/ai-chat-panel'
+// AI chat is now embedded in the Vibe tab — no floating panel
 import VariablesPanel from '@/components/panels/variables-panel'
 import ComponentBrowserPanel from '@/components/panels/component-browser-panel'
 import ExportDialog from '@/components/shared/export-dialog'
@@ -14,7 +14,7 @@ import SaveDialog from '@/components/shared/save-dialog'
 import AgentSettingsDialog from '@/components/shared/agent-settings-dialog'
 import FigmaImportDialog from '@/components/shared/figma-import-dialog'
 import UpdateReadyBanner from './update-ready-banner'
-import { useAIStore } from '@/stores/ai-store'
+// AI store no longer needed here — chat is in the Vibe tab
 import { useCanvasStore } from '@/stores/canvas-store'
 import { useDocumentStore } from '@/stores/document-store'
 import { useAgentSettingsStore } from '@/stores/agent-settings-store'
@@ -30,15 +30,13 @@ import { initAppStorage } from '@/utils/app-storage'
 const FabricCanvas = lazy(() => import('@/canvas/fabric-canvas'))
 
 export default function EditorLayout() {
-  const toggleMinimize = useAIStore((s) => s.toggleMinimize)
-  const hasSelection = useCanvasStore((s) => s.selection.activeId !== null)
   const layerPanelOpen = useCanvasStore((s) => s.layerPanelOpen)
   const variablesPanelOpen = useCanvasStore((s) => s.variablesPanelOpen)
   const figmaImportOpen = useCanvasStore((s) => s.figmaImportDialogOpen)
   const closeFigmaImport = useCallback(() => {
     useCanvasStore.getState().setFigmaImportDialogOpen(false)
   }, [])
-  const editorMode = useTimelineStore((s) => s.editorMode)
+  const timelineExpanded = useTimelineStore((s) => s.timelineExpanded)
   const browserOpen = useUIKitStore((s) => s.browserOpen)
   const saveDialogOpen = useDocumentStore((s) => s.saveDialogOpen)
   const closeSaveDialog = useCallback(() => {
@@ -54,10 +52,10 @@ export default function EditorLayout() {
     const handler = (e: KeyboardEvent) => {
       const isMod = e.metaKey || e.ctrlKey
 
-      // Cmd+J: toggle AI panel minimize
+      // Cmd+J: switch to Vibe tab
       if (isMod && e.key === 'j') {
         e.preventDefault()
-        toggleMinimize()
+        useCanvasStore.getState().setRightPanelTab('vibe')
         return
       }
 
@@ -89,13 +87,10 @@ export default function EditorLayout() {
         return
       }
 
-      // Cmd+Shift+A: toggle animate mode
+      // Cmd+Shift+A: toggle timeline expand/collapse
       if (isMod && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault()
-        const ts = useTimelineStore.getState()
-        const nextMode = ts.editorMode === 'animate' ? 'design' : 'animate'
-        ts.setEditorMode(nextMode)
-        useCanvasStore.getState().setRightPanelTab(nextMode === 'animate' ? 'animate' : 'design')
+        useTimelineStore.getState().toggleTimeline()
         return
       }
 
@@ -115,7 +110,7 @@ export default function EditorLayout() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [toggleMinimize])
+  }, [])
 
   // Handle Electron native menu actions
   useElectronMenu()
@@ -163,22 +158,14 @@ export default function EditorLayout() {
               {/* Floating UIKit browser panel */}
               {browserOpen && <ComponentBrowserPanel />}
 
-              {/* Bottom bar: minimized AI (left) + zoom controls (right) */}
-              <div className="absolute bottom-2 left-2 right-2 z-10 flex items-center justify-between pointer-events-none">
-                <div className="pointer-events-auto">
-                  <AIChatMinimizedBar />
-                </div>
-                <div className="pointer-events-auto">
-                  <StatusBar />
-                </div>
+              {/* Bottom bar: zoom controls */}
+              <div className="absolute bottom-2 right-2 z-10 pointer-events-auto">
+                <StatusBar />
               </div>
-
-              {/* Expanded AI panel (floating, draggable) */}
-              <AIChatPanel />
             </div>
-            {(hasSelection || editorMode === 'animate') && <RightPanel />}
+            <RightPanel />
           </div>
-          {editorMode === 'animate' && <TimelinePanel />}
+          {timelineExpanded && <TimelinePanel />}
         </div>
         <ExportDialog open={exportOpen} onClose={closeExport} />
         <SaveDialog open={saveDialogOpen} onClose={closeSaveDialog} />

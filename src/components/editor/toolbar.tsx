@@ -249,11 +249,10 @@ export default function Toolbar() {
       }],
     })
 
-    // Auto-open timeline
+    // Auto-expand timeline for video import
     const ts = useTimelineStore.getState()
-    if (ts.editorMode !== 'animate') {
-      ts.setEditorMode('animate')
-      useCanvasStore.getState().setRightPanelTab('animate')
+    if (!ts.timelineExpanded) {
+      ts.setTimelineExpanded(true)
     }
     // Extend composition duration to fit video if needed
     if (videoDurationMs > ts.duration) {
