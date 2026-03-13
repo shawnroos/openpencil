@@ -21,6 +21,7 @@ import { useAgentSettingsStore } from '@/stores/agent-settings-store'
 import { useUIKitStore } from '@/stores/uikit-store'
 import { useThemePresetStore } from '@/stores/theme-preset-store'
 import TimelinePanel from '@/components/animation/timeline-panel'
+import TimelineTransport from '@/components/animation/timeline-transport'
 import { useTimelineStore } from '@/stores/timeline-store'
 import { useElectronMenu } from '@/hooks/use-electron-menu'
 import { useFigmaPaste } from '@/hooks/use-figma-paste'
@@ -165,7 +166,7 @@ export default function EditorLayout() {
             </div>
             <RightPanel />
           </div>
-          {timelineExpanded && <TimelinePanel />}
+          {timelineExpanded ? <TimelinePanel /> : <TimelineTransport />}
         </div>
         <ExportDialog open={exportOpen} onClose={closeExport} />
         <SaveDialog open={saveDialogOpen} onClose={closeSaveDialog} />
