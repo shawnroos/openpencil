@@ -25,6 +25,7 @@ function EditorPage() {
       ;(window as any).__testHarness = {
         createVideoDecoder: decoder.createVideoDecoder,
         getVideoDecoder: registry.getVideoDecoder,
+        registerVideoDecoder: registry.registerVideoDecoder,
         storeVideoFile: fileStore.storeVideoFile,
         getVideoFile: fileStore.getVideoFile,
         playV2: playback.playV2,
