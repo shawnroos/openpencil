@@ -26,6 +26,7 @@ import {
   getAllChildren,
   migrateToPages,
   ensureDocumentNodeIds,
+  ensureNodeClips,
   DEFAULT_PAGE_ID,
 } from './document-tree-utils'
 import { createPageActions } from './document-store-pages'
@@ -122,13 +123,15 @@ export const useDocumentStore = create<DocumentStoreState>()(
 
     addNode: (parentId, node, index) => {
       useHistoryStore.getState().pushState(get().document)
+      // Ensure new nodes have a default clip (every node is a timeline citizen)
+      const nodeWithClips = ensureNodeClips(node)
       set((s) => ({
         document: _setChildren(
           s.document,
           // Default to index 0 (prepend) so new items appear at the top of
           // the layer panel = frontmost on canvas. Callers can pass an
           // explicit index to override.
-          insertNodeInTree(_children(s), parentId, node, index ?? 0),
+          insertNodeInTree(_children(s), parentId, nodeWithClips, index ?? 0),
         ),
         isDirty: true,
       }))
