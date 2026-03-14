@@ -169,12 +169,35 @@ export function clipToTimelineAction(clip: AnimationClipData | VideoClipData): T
  * Each node with clips becomes a timeline row.
  * Returns rows + metadata for the v2 clip-based actions.
  */
+/** Track depth info stored per row ID — used by track headers for indentation. */
+export const rowDepthMap = new Map<string, number>()
+
+/** Tracks which group/frame nodes are collapsed in the timeline. */
+const collapsedGroups = new Set<string>()
+
+export function toggleGroupCollapse(nodeId: string): void {
+  const rowId = `v2::${nodeId}`
+  if (collapsedGroups.has(rowId)) {
+    collapsedGroups.delete(rowId)
+  } else {
+    collapsedGroups.add(rowId)
+  }
+}
+
+export function isGroupCollapsed(nodeId: string): boolean {
+  return collapsedGroups.has(`v2::${nodeId}`)
+}
+
 export function buildTimelineRowsFromNodes(nodes: PenNode[]): TimelineProjection {
   const rows: TimelineRow[] = []
   const metadata: ActionMetadataMap = new Map()
+  rowDepthMap.clear()
 
-  function walk(list: PenNode[]) {
+  function walk(list: PenNode[], depth: number) {
     for (const node of list) {
+      const rowId = `v2::${node.id}`
+      rowDepthMap.set(rowId, depth)
+
       if (node.clips && node.clips.length > 0) {
         const actions: TimelineAction[] = []
 
@@ -188,15 +211,19 @@ export function buildTimelineRowsFromNodes(nodes: PenNode[]): TimelineProjection
           })
         }
 
-        rows.push({ id: `v2::${node.id}`, actions })
+        rows.push({ id: rowId, actions })
       }
 
+      // Recurse into children unless this group is collapsed
       if ('children' in node && node.children) {
-        walk(node.children as PenNode[])
+        const isCollapsed = collapsedGroups.has(rowId)
+        if (!isCollapsed) {
+          walk(node.children as PenNode[], depth + 1)
+        }
       }
     }
   }
 
-  walk(nodes)
+  walk(nodes, 0)
   return { rows, metadata }
 }
