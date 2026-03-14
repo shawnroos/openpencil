@@ -1,7 +1,7 @@
 ---
 title: "refactor: Full v2 animation engine migration — delete v1, wire timeline to v2"
 type: refactor
-status: active
+status: completed
 date: 2026-03-11
 deepened: 2026-03-11
 origin: docs/brainstorms/2026-03-11-v2-engine-migration-brainstorm.md

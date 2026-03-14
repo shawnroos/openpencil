@@ -213,11 +213,17 @@ function allocateSectionHeights(totalHeight: number, count: number): number[] {
   if (count <= 0) return []
   if (count === 1) return [totalHeight]
 
-  const minHeight = 80
-  // Weighted allocation: first section (hero/header) gets 1.4×, last (footer) gets 0.6×, rest even
+  // Configurable via env for experiment sweeps
+  const heroWeight = typeof process !== 'undefined' && process.env.HERO_WEIGHT
+    ? parseFloat(process.env.HERO_WEIGHT) : 1.4
+  const footerWeight = typeof process !== 'undefined' && process.env.FOOTER_WEIGHT
+    ? parseFloat(process.env.FOOTER_WEIGHT) : 0.6
+  const minHeight = typeof process !== 'undefined' && process.env.MIN_SECTION_HEIGHT
+    ? parseInt(process.env.MIN_SECTION_HEIGHT, 10) : 80
+  // Weighted allocation: first section (hero/header) gets heroWeight×, last (footer) gets footerWeight×, rest even
   const weights = Array.from({ length: count }, (_, i) => {
-    if (i === 0) return 1.4 // hero/header
-    if (i === count - 1 && count >= 3) return 0.6 // footer
+    if (i === 0) return heroWeight
+    if (i === count - 1 && count >= 3) return footerWeight
     return 1.0
   })
   const totalWeight = weights.reduce((sum, w) => sum + w, 0)

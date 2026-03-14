@@ -333,18 +333,19 @@ function flattenNodes(
           : children
 
       // Compute clip context for children:
-      // - Root frames (depth 0, type frame) always clip their children
-      // - Non-root frames clip only when they have cornerRadius
+      // All frames clip their children by default (matching Figma behavior).
+      // Groups only clip when they have cornerRadius or explicit clipContent.
       let childClip = clipCtx
       const crRaw = 'cornerRadius' in node ? cornerRadiusVal(node.cornerRadius) : 0
       const cr = Math.min(crRaw, nodeH / 2)
-      const isRootFrame = node.type === 'frame' && depth === 0
+      const isFrame = node.type === 'frame'
       const hasClipContent = 'clipContent' in node && (node as ContainerProps).clipContent === true
-      if (isRootFrame || cr > 0 || hasClipContent) {
+      if (isFrame || cr > 0 || hasClipContent) {
         childClip = { x: parentAbsX, y: parentAbsY, w: nodeW, h: nodeH, rx: cr }
       }
 
       // Track root frame bounds for drag-out reparenting
+      const isRootFrame = isFrame && !clipCtx
       if (isRootFrame) {
         rootFrameBounds.set(node.id, { x: parentAbsX, y: parentAbsY, w: nodeW, h: nodeH })
       }

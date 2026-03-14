@@ -84,7 +84,7 @@ export default function RightPanel() {
       ) : activeTab === 'code' ? (
         <CodePanel />
       ) : (
-        <AIChatPanel embedded />
+        <AIChatPanel />
       )}
     </div>
   )

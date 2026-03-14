@@ -106,11 +106,17 @@ export const DESIGN_STREAM_TIMEOUTS = {
 } as const
 
 /** When false, skips the vision LLM validation loop (pre-validation heuristics still run) */
-export const VALIDATION_ENABLED = false
+export const VALIDATION_ENABLED = typeof process !== 'undefined'
+  ? process.env.VALIDATION_ENABLED === 'true'
+  : false
 
 export const VALIDATION_TIMEOUT_MS = 180_000
-export const MAX_VALIDATION_ROUNDS = 3
-export const VALIDATION_QUALITY_THRESHOLD = 8
+export const MAX_VALIDATION_ROUNDS = typeof process !== 'undefined' && process.env.MAX_VALIDATION_ROUNDS
+  ? parseInt(process.env.MAX_VALIDATION_ROUNDS, 10)
+  : 3
+export const VALIDATION_QUALITY_THRESHOLD = typeof process !== 'undefined' && process.env.VALIDATION_QUALITY_THRESHOLD
+  ? parseInt(process.env.VALIDATION_QUALITY_THRESHOLD, 10)
+  : 8
 
 export const RETRY_TIMEOUT_CONFIG = {
   multiplier: 2,

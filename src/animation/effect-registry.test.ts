@@ -7,9 +7,9 @@ import {
 } from './effect-registry'
 
 describe('effect-registry', () => {
-  it('registers all 11 effects after importing effects/index', () => {
+  it('registers all 17 effects after importing effects/index (11 base + 6 video)', () => {
     const all = getAllEffects()
-    expect(all).toHaveLength(11)
+    expect(all).toHaveLength(17)
   })
 
   it('generateClipFromEffect returns valid keyframes for fade-in', () => {

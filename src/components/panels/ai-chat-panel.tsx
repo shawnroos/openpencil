@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Plus, ChevronDown, ChevronUp, Check, Loader2, Paperclip, X, Square, Zap } from 'lucide-react'
+import { Send, Plus, ChevronUp, Check, Loader2, Paperclip, X, Square, Zap } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { useAIStore } from '@/stores/ai-store'
-import type { PanelCorner } from '@/stores/ai-store'
 import { useCanvasStore } from '@/stores/canvas-store'
 import { useAgentSettingsStore } from '@/stores/agent-settings-store'
 import {
@@ -96,7 +95,7 @@ function ConcurrencyButton() {
  * Expanded AI chat panel — floating, draggable.
  * Only renders when NOT minimized.
  */
-export default function AIChatPanel({ embedded = false }: { embedded?: boolean } = {}) {
+export default function AIChatPanel() {
   const { t } = useTranslation()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -202,150 +201,8 @@ export default function AIChatPanel({ embedded = false }: { embedded?: boolean }
     return () => document.removeEventListener('pointerdown', handler)
   }, [modelDropdownOpen])
 
-  // Auto-expand when streaming starts while minimized
-  useEffect(() => {
-    if (isStreaming && isMinimized) {
-      toggleMinimize()
-    }
-  }, [isStreaming, isMinimized, toggleMinimize])
+  // Floating drag/resize/snap handlers removed — panel is always embedded in Vibe tab
 
-  /* --- Drag-to-snap handlers --- */
-
-  const handleDragStart = useCallback((e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest('button, input, textarea, select')) return
-
-    const panel = panelRef.current
-    if (!panel) return
-
-    const panelRect = panel.getBoundingClientRect()
-    dragRef.current = {
-      offsetX: e.clientX - panelRect.left,
-      offsetY: e.clientY - panelRect.top,
-    }
-
-    e.currentTarget.setPointerCapture(e.pointerId)
-
-    const container = panel.parentElement!
-    const containerRect = container.getBoundingClientRect()
-    setDragStyle({
-      left: panelRect.left - containerRect.left,
-      top: panelRect.top - containerRect.top,
-      right: 'auto',
-      bottom: 'auto',
-    })
-  }, [])
-
-  const handleDragMove = useCallback((e: React.PointerEvent) => {
-    if (!dragRef.current) return
-
-    const panel = panelRef.current
-    if (!panel) return
-
-    const container = panel.parentElement!
-    const containerRect = container.getBoundingClientRect()
-    setDragStyle({
-      left: e.clientX - containerRect.left - dragRef.current.offsetX,
-      top: e.clientY - containerRect.top - dragRef.current.offsetY,
-      right: 'auto',
-      bottom: 'auto',
-    })
-  }, [])
-
-  const handleDragEnd = useCallback(() => {
-    if (!dragRef.current) return
-
-    const panel = panelRef.current
-    if (!panel) return
-
-    const container = panel.parentElement!
-    const containerRect = container.getBoundingClientRect()
-    const panelRect = panel.getBoundingClientRect()
-
-    const centerX = panelRect.left + panelRect.width / 2 - containerRect.left
-    const centerY = panelRect.top + panelRect.height / 2 - containerRect.top
-
-    const isLeft = centerX < containerRect.width / 2
-    const isTop = centerY < containerRect.height / 2
-
-    const corner: PanelCorner = isLeft
-      ? isTop ? 'top-left' : 'bottom-left'
-      : isTop ? 'top-right' : 'bottom-right'
-
-    setPanelCorner(corner)
-    dragRef.current = null
-    setDragStyle(null)
-  }, [setPanelCorner])
-
-
-  /* --- Resize handlers --- */
-  const handleResizeStart = useCallback((e: React.PointerEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const panel = panelRef.current
-    if (!panel) return
-
-    const rect = panel.getBoundingClientRect()
-    const container = panel.parentElement!.getBoundingClientRect()
-
-    // If we're not already in absolute positioning mode, snap to it now
-    // so resizing works smoothly from the current visual position
-    if (!dragStyle) {
-      setDragStyle({
-        left: rect.left - container.left,
-        top: rect.top - container.top,
-        width: 320,
-        height: rect.height,
-      })
-    }
-
-    resizeRef.current = {
-      startY: e.clientY,
-      startHeight: rect.height,
-      startTop: rect.top - container.top,
-    }
-
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }, [dragStyle])
-
-  const handleResizeMove = useCallback((e: React.PointerEvent) => {
-    if (!resizeRef.current) return
-    e.preventDefault()
-    e.stopPropagation()
-
-    const deltaY = e.clientY - resizeRef.current.startY
-    // Dragging top handle up (negative delta) -> increase height, decrease top
-    // Dragging top handle down (positive delta) -> decrease height, increase top
-
-    let newHeight = resizeRef.current.startHeight - deltaY
-    let newTop = resizeRef.current.startTop + deltaY
-
-    // Constrain height
-    if (newHeight < 200) {
-      const diff = 200 - newHeight
-      newHeight = 200
-      newTop -= diff // correct top if we hit min height
-    }
-    if (newHeight > 1200) {
-      const diff = newHeight - 1200
-      newHeight = 1200
-      newTop += diff // correct top if we hit max height
-    }
-
-    setPanelHeight(newHeight)
-    setDragStyle(prev => ({
-      ...prev,
-      top: newTop,
-      height: newHeight,
-    }))
-  }, [])
-
-  const handleResizeEnd = useCallback((e: React.PointerEvent) => {
-    if (!resizeRef.current) return
-    e.preventDefault()
-    e.stopPropagation()
-    resizeRef.current = null
-    e.currentTarget.releasePointerCapture(e.pointerId)
-  }, [])
 
   const handleApplyDesign = useCallback((jsonString: string) => {
     // For manual apply, we always use the "add/create" logic for now,
@@ -420,59 +277,23 @@ export default function AIChatPanel({ embedded = false }: { embedded?: boolean }
     }
   }
 
-  // Don't render when minimized — unless embedded in the Vibe tab
-  if (isMinimized && !embedded) return null
+  // Panel is always visible in the Vibe tab
 
   return (
     <div
       ref={panelRef}
       className="flex flex-1 flex-col overflow-hidden bg-card"
     >
-      {/* --- Floating-only: Resize Handle + Draggable Header --- */}
-      {!embedded && (
-        <>
-          <div
-            className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-50 hover:bg-primary/20 transition-colors group flex items-center justify-center"
-            onPointerDown={handleResizeStart}
-            onPointerMove={handleResizeMove}
-            onPointerUp={handleResizeEnd}
-          >
-            <div className="w-8 h-1 rounded-full bg-border group-hover:bg-primary/50 transition-colors" />
-          </div>
-          <div
-            className="flex items-center justify-between px-1 py-1 border-b border-border cursor-grab active:cursor-grabbing select-none"
-            onPointerDown={handleDragStart}
-            onPointerMove={handleDragMove}
-            onPointerUp={handleDragEnd}
-          >
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon-sm" onClick={toggleMinimize} title={t('ai.collapse')}>
-                <ChevronDown size={14} />
-              </Button>
-              <span className="text-sm font-medium text-foreground max-w-[100px] truncate overflow-hidden text-ellipsis" title={chatTitle}>
-                {chatTitle}
-              </span>
-              {isStreaming && <Loader2 size={13} className="animate-spin text-muted-foreground ml-2" />}
-            </div>
-            <Button variant="ghost" size="icon-sm" onClick={clearMessages} title={t('ai.newChat')}>
-              <Plus size={14} />
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* --- Embedded header (simpler) --- */}
-      {embedded && (
-        <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-medium text-foreground">{chatTitle}</span>
-            {isStreaming && <Loader2 size={12} className="animate-spin text-muted-foreground" />}
-          </div>
-          <Button variant="ghost" size="icon-sm" onClick={clearMessages} title={t('ai.newChat')}>
-            <Plus size={14} />
-          </Button>
+      {/* --- Header --- */}
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-foreground">{chatTitle}</span>
+          {isStreaming && <Loader2 size={12} className="animate-spin text-muted-foreground" />}
         </div>
-      )}
+        <Button variant="ghost" size="icon-sm" onClick={clearMessages} title={t('ai.newChat')}>
+          <Plus size={14} />
+        </Button>
+      </div>
 
       {/* --- Messages --- */}
       <div className="min-h-0 flex-1 overflow-y-auto rounded-b-xl bg-background/80 px-3.5 py-3">

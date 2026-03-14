@@ -1,7 +1,7 @@
 ---
 title: "feat: Integrate react-timeline-editor for unified animation/video timeline"
 type: feat
-status: active
+status: completed
 date: 2026-03-11
 deepened: 2026-03-11
 reviewed: 2026-03-11

@@ -11,7 +11,7 @@ import type { AnimationIndex } from '@/animation/animation-index'
 import type { VideoClipData, KeyframeV2 } from '@/types/animation'
 import { getEffect } from '@/animation/effect-registry'
 import { findFabricObject, applyAnimatedFrame } from '@/animation/canvas-bridge'
-import { interpolateClipAtOffset } from '@/animation/interpolation'
+// Keyframe interpolation done inline (interpolateKeyframesAtT below)
 
 /**
  * Apply video transitions for the current frame.
