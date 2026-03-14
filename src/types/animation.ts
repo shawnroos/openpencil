@@ -73,6 +73,8 @@ export interface VideoClipData extends ClipBase {
   sourceStart: number // ms
   sourceEnd: number // ms
   playbackRate: number
+  inTransition?: TimedEffectConfig   // entrance transition (fade, blur, scale)
+  outTransition?: TimedEffectConfig  // exit transition
 }
 
 /** Discriminated union of clip kinds */

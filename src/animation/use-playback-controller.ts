@@ -28,6 +28,7 @@ import {
   stopVideoPlaybackMB,
   seekVideoFramesMB,
 } from '@/animation/video-sync'
+import { applyVideoTransitions } from '@/animation/video-transitions'
 import { setPlaybackControllerRef as setPauseMiddlewareRef } from '@/stores/animation-pause-middleware'
 import { useCanvasStore } from '@/stores/canvas-store'
 import { useDocumentStore } from '@/stores/document-store'
@@ -97,6 +98,9 @@ function ensureController(): PlaybackController {
           if (obj) applyAnimatedFrame(obj as FabricObject, values)
         }
       }
+
+      // Apply video transitions (fade, blur, scale on In/Out segments)
+      applyVideoTransitions(activeCanvas, timeMs, activeIndex)
 
       // Sync video clips (synchronous — advanceFrame is sync)
       syncVideoFramesMB(activeCanvas, timeMs, activeIndex)
