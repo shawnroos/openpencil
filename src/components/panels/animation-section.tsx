@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useState } from 'react'
-import { Clock, Zap, ChevronDown, X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import SectionHeader from '@/components/shared/section-header'
 import NumberInput from '@/components/shared/number-input'
 import { useCanvasStore } from '@/stores/canvas-store'
@@ -157,7 +157,7 @@ export default function AnimationSection() {
 
   return (
     <div className="px-3 py-2 space-y-2">
-      <SectionHeader title="Animation" icon={<Zap size={12} />} />
+      <SectionHeader title="Animation" />
 
       {/* Clip timing */}
       <div className="grid grid-cols-2 gap-1.5">

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Plus, ChevronDown, ChevronUp, Check, MessageSquare, Loader2, Paperclip, X, Square, Zap } from 'lucide-react'
+import { Send, Plus, ChevronDown, ChevronUp, Check, Loader2, Paperclip, X, Square, Zap } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'

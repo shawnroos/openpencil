@@ -7,7 +7,7 @@ import type { PenNode, ContainerProps, RefNode, PathNode, ImageNode, IconFontNod
 import { Component, Diamond, ArrowUpRight, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
-import SectionHeader from '@/components/shared/section-header'
+// SectionHeader moved to AnimationSection
 import SizeSection from './size-section'
 import LayoutSection from './layout-section'
 import FillSection from './fill-section'
