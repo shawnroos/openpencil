@@ -10,8 +10,10 @@ import NumberInput from '@/components/shared/number-input'
 import { useCanvasStore } from '@/stores/canvas-store'
 import { useDocumentStore } from '@/stores/document-store'
 import { getEffectsByCategory, getEffect, buildMergedKeyframes } from '@/animation/effect-registry'
+import { findFabricObject, captureNodeState } from '@/animation/canvas-bridge'
 import type { AnimationClipData, TimedEffectConfig } from '@/types/animation'
 import type { PenNode } from '@/types/pen'
+import type { FabricObject } from 'fabric'
 import { cn } from '@/lib/utils'
 
 const ENTER_EFFECTS = getEffectsByCategory('enter')
@@ -123,6 +125,11 @@ export default function AnimationSection() {
       c.id === animClip.id ? { ...c, ...updates } : c,
     )
 
+    // Capture current Fabric object state for effect generation
+    const canvas = useCanvasStore.getState().fabricCanvas
+    const obj = canvas ? findFabricObject(canvas, activeId) : null
+    const currentState = obj ? captureNodeState(obj as FabricObject) : {}
+
     // If in/out effects changed, rebuild keyframes
     const merged = updatedClips.find((c) => c.id === animClip.id) as AnimationClipData
     if (merged.inEffect || merged.outEffect) {
@@ -130,14 +137,18 @@ export default function AnimationSection() {
         merged.duration,
         merged.inEffect ?? undefined,
         merged.outEffect ?? undefined,
-        {}, // currentState — will use defaults
+        currentState,
       )
       const withKeyframes = updatedClips.map((c) =>
         c.id === animClip.id ? { ...c, keyframes: newKeyframes } : c,
       )
       updateNode(activeId, { clips: withKeyframes } as Partial<PenNode>)
     } else {
-      updateNode(activeId, { clips: updatedClips } as Partial<PenNode>)
+      // Clear keyframes when both effects are removed
+      const withCleared = updatedClips.map((c) =>
+        c.id === animClip.id ? { ...c, keyframes: [] } : c,
+      )
+      updateNode(activeId, { clips: withCleared } as Partial<PenNode>)
     }
   }, [activeId, node.clips, animClip.id, updateNode])
 
