@@ -1,17 +1,16 @@
 import { useState, useCallback, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useCanvasStore } from '@/stores/canvas-store'
 import type { RightPanelTab } from '@/stores/canvas-store'
 import PropertyPanel from './property-panel'
 import CodePanel from './code-panel'
+import AIChatPanel from './ai-chat-panel'
 
-const MIN_WIDTH = 256   // 16rem (w-64)
-const MAX_WIDTH = 640   // 40rem
+const MIN_WIDTH = 256
+const MAX_WIDTH = 640
 const DEFAULT_WIDTH = 256
 
 export default function RightPanel() {
-  const { t } = useTranslation()
   const activeTab = useCanvasStore((s) => s.rightPanelTab)
   const setTab = useCanvasStore((s) => s.setRightPanelTab)
   const [width, setWidth] = useState(DEFAULT_WIDTH)
@@ -27,7 +26,6 @@ export default function RightPanel() {
 
     const handleMouseMove = (ev: MouseEvent) => {
       if (!isDragging.current) return
-      // Dragging left border: moving mouse left => wider
       const delta = startX.current - ev.clientX
       const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth.current + delta))
       setWidth(newWidth)
@@ -48,8 +46,9 @@ export default function RightPanel() {
   }, [width])
 
   const tabs: { key: RightPanelTab; label: string }[] = [
-    { key: 'design', label: t('rightPanel.design') },
-    { key: 'code', label: t('rightPanel.code') },
+    { key: 'create', label: 'Create' },
+    { key: 'code', label: 'Code' },
+    { key: 'vibe', label: 'Vibe' },
   ]
 
   return (
@@ -80,10 +79,12 @@ export default function RightPanel() {
       </div>
 
       {/* Content */}
-      {activeTab === 'design' ? (
+      {activeTab === 'create' ? (
         <PropertyPanel embedded />
-      ) : (
+      ) : activeTab === 'code' ? (
         <CodePanel />
+      ) : (
+        <AIChatPanel />
       )}
     </div>
   )

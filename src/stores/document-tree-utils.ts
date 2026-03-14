@@ -1,8 +1,40 @@
 import { nanoid } from 'nanoid'
 import type { PenDocument, PenNode, PenPage, RefNode } from '@/types/pen'
+import type { AnimationClipData } from '@/types/animation'
 
 export const DEFAULT_FRAME_ID = 'root-frame'
 export const DEFAULT_PAGE_ID = 'page-1'
+const DEFAULT_COMPOSITION_DURATION = 5000
+
+/**
+ * Ensure a node has at least one clip. If no clips exist, adds a default
+ * visibility clip spanning the composition duration. Pure function.
+ */
+export function ensureNodeClips(node: PenNode, compositionDuration?: number): PenNode {
+  if (node.clips && node.clips.length > 0) return node
+  const duration = compositionDuration ?? DEFAULT_COMPOSITION_DURATION
+  const defaultClip: AnimationClipData = {
+    id: nanoid(8),
+    kind: 'animation',
+    startTime: 0,
+    duration,
+    keyframes: [],
+  }
+  return { ...node, clips: [defaultClip] }
+}
+
+/**
+ * Walk a node tree and ensure every node has clips.
+ */
+export function ensureTreeClips(nodes: PenNode[], compositionDuration?: number): PenNode[] {
+  return nodes.map((node) => {
+    let updated = ensureNodeClips(node, compositionDuration)
+    if ('children' in updated && updated.children) {
+      updated = { ...updated, children: ensureTreeClips(updated.children, compositionDuration) }
+    }
+    return updated
+  })
+}
 
 export function createEmptyDocument(): PenDocument {
   const children: PenNode[] = [

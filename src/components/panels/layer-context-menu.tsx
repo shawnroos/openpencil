@@ -74,7 +74,7 @@ export default function LayerContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg py-1 min-w-[160px]"
+      className="fixed z-50 bg-popover border border-border rounded-md shadow-lg py-1 min-w-[160px]"
       style={{ left: x, top: y }}
     >
       {MENU_ITEMS.filter(
@@ -88,7 +88,7 @@ export default function LayerContextMenu({
         <button
           key={item.action}
           type="button"
-          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-700 hover:text-white text-left"
+          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-popover-foreground hover:bg-accent hover:text-accent-foreground text-left"
           onClick={() => onAction(item.action)}
         >
           <item.icon size={12} />

@@ -25,6 +25,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import IconPickerDialog from '@/components/shared/icon-picker-dialog'
+import { useTimelineStore } from '@/stores/timeline-store'
+import { createVideoDecoder } from '@/animation/video-decoder'
+import { registerVideoDecoder } from '@/animation/video-registry'
+import { storeVideoFile } from '@/animation/video-file-store'
 
 export default function Toolbar() {
   const { t } = useTranslation()
@@ -35,6 +39,7 @@ export default function Toolbar() {
   const browserOpen = useUIKitStore((s) => s.browserOpen)
   const toggleBrowser = useUIKitStore((s) => s.toggleBrowser)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
 
   const handleIconSelect = useCallback((svgText: string, iconName: string) => {
@@ -165,6 +170,96 @@ export default function Toolbar() {
     }
   }, [])
 
+  const handleAddVideo = useCallback(() => {
+    videoInputRef.current?.click()
+  }, [])
+
+  const handleVideoSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+
+    // WebCodecs check
+    if (typeof VideoDecoder === 'undefined') {
+      console.warn('[video-import] WebCodecs not available — video requires a modern browser')
+      return
+    }
+
+    // Compute display dimensions before creating decoder
+    const { viewport, fabricCanvas } = useCanvasStore.getState()
+    const canvasEl = fabricCanvas?.getElement()
+    const canvasW = canvasEl?.clientWidth ?? 800
+    const canvasH = canvasEl?.clientHeight ?? 600
+    const centerX = (-viewport.panX + canvasW / 2) / viewport.zoom
+    const centerY = (-viewport.panY + canvasH / 2) / viewport.zoom
+
+    // Create decoder BEFORE addNode — fail fast, never create broken nodes
+    const maxDim = 400
+    const handle = await createVideoDecoder(file, maxDim, maxDim)
+    if (!handle) {
+      console.warn('[video-import] Decoder creation failed — codec may be unsupported')
+      return
+    }
+
+    // Scale to fit maxDim while preserving aspect ratio
+    let w = handle.width
+    let h = handle.height
+    if (w > maxDim || h > maxDim) {
+      const scale = maxDim / Math.max(w, h)
+      w = Math.round(w * scale)
+      h = Math.round(h * scale)
+    }
+
+    // Resize decoder canvas to actual display dimensions
+    handle.resizeCanvas(w, h)
+    // Re-draw first frame at new size
+    await handle.drawFrame(0)
+
+    const nodeId = generateId()
+    const videoDurationMs = Math.round(handle.duration * 1000)
+
+    // Store File reference and register decoder
+    storeVideoFile(nodeId, file)
+    registerVideoDecoder(nodeId, handle)
+
+    // AudioDecoder check (informational — video still works without it)
+    if (typeof AudioDecoder === 'undefined') {
+      console.warn('[video-import] AudioDecoder not available — video will play without audio')
+    }
+
+    useDocumentStore.getState().addNode(null, {
+      id: nodeId,
+      type: 'video',
+      name: file.name.replace(/\.[^.]+$/, ''),
+      src: file.name, // Store filename for re-import hint (not blob URL)
+      mimeType: file.type,
+      videoDuration: videoDurationMs,
+      x: centerX - w / 2,
+      y: centerY - h / 2,
+      width: w,
+      height: h,
+      clips: [{
+        id: generateId(),
+        kind: 'video' as const,
+        startTime: 0,
+        duration: videoDurationMs,
+        sourceStart: 0,
+        sourceEnd: videoDurationMs,
+        playbackRate: 1,
+      }],
+    })
+
+    // Auto-expand timeline for video import
+    const ts = useTimelineStore.getState()
+    if (!ts.timelineExpanded) {
+      ts.setTimelineExpanded(true)
+    }
+    // Extend composition duration to fit video if needed
+    if (videoDurationMs > ts.duration) {
+      ts.setDuration(videoDurationMs)
+    }
+  }, [])
+
   return (
     <div className="absolute top-2 left-2 z-10 w-10 bg-card border border-border rounded-xl flex flex-col items-center py-2 gap-1 shadow-lg">
       <ToolButton
@@ -176,6 +271,7 @@ export default function Toolbar() {
       <ShapeToolDropdown
         onIconPickerOpen={() => setIconPickerOpen(true)}
         onImageImport={handleAddImage}
+        onVideoImport={handleAddVideo}
       />
       <ToolButton
         tool="text"
@@ -295,6 +391,13 @@ export default function Toolbar() {
         accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
         className="hidden"
         onChange={handleFileSelected}
+      />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime"
+        className="hidden"
+        onChange={handleVideoSelected}
       />
       <IconPickerDialog
         open={iconPickerOpen}

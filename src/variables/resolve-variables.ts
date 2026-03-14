@@ -280,5 +280,53 @@ export function resolveNodeForCanvas(
     }
   }
 
+  // Font family (Jeans Vibe Kit)
+  if ('fontFamily' in node && typeof (node as unknown as Record<string, unknown>).fontFamily === 'string') {
+    const val = (node as unknown as Record<string, unknown>).fontFamily as string
+    if (isVariableRef(val)) {
+      const resolved = resolveVariableRef(val, variables, activeTheme)
+      if (typeof resolved === 'string') {
+        out.fontFamily = resolved
+        changed = true
+      }
+    }
+  }
+
+  // Font size (Jeans Vibe Kit)
+  if ('fontSize' in node && typeof (node as unknown as Record<string, unknown>).fontSize === 'string') {
+    const val = (node as unknown as Record<string, unknown>).fontSize as string
+    if (isVariableRef(val)) {
+      out.fontSize = resolveNumericRef(val, variables, activeTheme) ?? 16
+      changed = true
+    }
+  }
+
+  // Corner radius (Jeans Vibe Kit)
+  if ('cornerRadius' in node && typeof (node as unknown as Record<string, unknown>).cornerRadius === 'string') {
+    const val = (node as unknown as Record<string, unknown>).cornerRadius as string
+    if (isVariableRef(val)) {
+      out.cornerRadius = resolveNumericRef(val, variables, activeTheme) ?? 0
+      changed = true
+    }
+  }
+
+  // Line height (Jeans Vibe Kit)
+  if ('lineHeight' in node && typeof (node as unknown as Record<string, unknown>).lineHeight === 'string') {
+    const val = (node as unknown as Record<string, unknown>).lineHeight as string
+    if (isVariableRef(val)) {
+      out.lineHeight = resolveNumericRef(val, variables, activeTheme) ?? 1.5
+      changed = true
+    }
+  }
+
+  // Letter spacing (Jeans Vibe Kit)
+  if ('letterSpacing' in node && typeof (node as unknown as Record<string, unknown>).letterSpacing === 'string') {
+    const val = (node as unknown as Record<string, unknown>).letterSpacing as string
+    if (isVariableRef(val)) {
+      out.letterSpacing = resolveNumericRef(val, variables, activeTheme) ?? 0
+      changed = true
+    }
+  }
+
   return changed ? (out as unknown as PenNode) : node
 }

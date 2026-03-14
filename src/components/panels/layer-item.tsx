@@ -14,10 +14,12 @@ import {
   Spline,
   Link,
   ImageIcon,
+  Film,
   ChevronDown,
   ChevronRight,
   Diamond,
   Smile,
+  Play,
 } from 'lucide-react'
 import type { PenNodeType } from '@/types/pen'
 
@@ -31,6 +33,7 @@ const TYPE_ICONS: Record<PenNodeType, typeof Square> = {
   polygon: Hexagon,
   path: Spline,
   image: ImageIcon,
+  video: Film,
   icon_font: Smile,
   ref: Link,
 }
@@ -49,6 +52,7 @@ interface LayerItemProps {
   expanded: boolean
   isReusable: boolean
   isInstance: boolean
+  hasClips?: boolean
   dropPosition: DropPosition
   onSelect: (id: string) => void
   onRename: (id: string, name: string) => void
@@ -73,6 +77,7 @@ export default function LayerItem({
   expanded,
   isReusable,
   isInstance,
+  hasClips,
   dropPosition,
   onSelect,
   onRename,
@@ -117,12 +122,12 @@ export default function LayerItem({
   }
 
   const dropInsideHighlight =
-    dropPosition === 'inside' ? 'ring-2 ring-inset ring-blue-500 bg-blue-500/10' : ''
+    dropPosition === 'inside' ? 'ring-2 ring-inset ring-ring bg-accent/30' : ''
 
   return (
     <div className="relative" data-layer-id={id}>
       {dropPosition === 'above' && (
-        <div className="absolute top-0 left-2 right-2 h-0.5 bg-blue-500 rounded-full z-10" />
+        <div className="absolute top-0 left-2 right-2 h-0.5 bg-ring rounded-full z-10" />
       )}
       <div
         className={`group/layer flex items-center h-7 px-1 gap-1 cursor-pointer rounded text-xs transition-colors ${
@@ -177,6 +182,10 @@ export default function LayerItem({
           <span className="flex-1 truncate">{name}</span>
         )}
 
+        {hasClips && (
+          <Play size={10} className="shrink-0 text-emerald-400 opacity-70" />
+        )}
+
         <button
           type="button"
           onClick={(e) => {
@@ -209,7 +218,7 @@ export default function LayerItem({
         </button>
       </div>
       {dropPosition === 'below' && (
-        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-blue-500 rounded-full z-10" />
+        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-ring rounded-full z-10" />
       )}
     </div>
   )

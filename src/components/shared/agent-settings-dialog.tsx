@@ -234,13 +234,13 @@ function ProviderRow({ type }: { type: AIProviderType }) {
             <span className="text-[10px] text-muted-foreground leading-tight hidden sm:inline">{t(meta.descriptionKey)}</span>
           </div>
           {provider.isConnected && (
-            <span className="text-[11px] text-green-500 leading-tight flex items-center gap-1 mt-0.5">
+            <span className="text-[11px] text-primary leading-tight flex items-center gap-1 mt-0.5">
               <Check size={10} strokeWidth={2.5} />
               {t('agents.modelCount', { count: provider.models.length })}
             </span>
           )}
           {notInstalled && !isInstalling && !error && (
-            <span className="text-[10px] text-amber-500 leading-tight mt-0.5 block">
+            <span className="text-[10px] text-muted-foreground leading-tight mt-0.5 block">
               {t('agents.notInstalled')}
             </span>
           )}
@@ -266,7 +266,7 @@ function ProviderRow({ type }: { type: AIProviderType }) {
               href={installInfo.docsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[10px] text-blue-500 hover:underline inline-flex items-center gap-0.5 shrink-0"
+              className="text-[10px] text-primary hover:underline inline-flex items-center gap-0.5 shrink-0"
             >
               {t('agents.viewDocs')}
               <ExternalLink size={9} />
@@ -473,7 +473,7 @@ export default function AgentSettingsDialog() {
               <div
                 className={cn(
                   'w-2 h-2 rounded-full shrink-0',
-                  mcpServerRunning ? 'bg-green-500' : 'bg-muted-foreground/30',
+                  mcpServerRunning ? 'bg-primary' : 'bg-muted-foreground/30',
                 )}
               />
               <span className="text-[12px] text-foreground flex-1">
@@ -521,7 +521,7 @@ export default function AgentSettingsDialog() {
                     onClick={handleCopyConfig}
                     className="shrink-0 h-5 w-5"
                   >
-                    {configCopied ? <Check size={9} className="text-green-500" /> : <Copy size={9} />}
+                    {configCopied ? <Check size={9} className="text-primary" /> : <Copy size={9} />}
                   </Button>
                 </div>
                 <code className="text-[10px] text-muted-foreground font-mono select-all leading-none">{`{ "type": "http", "url": "http://${mcpServerLocalIp}:${mcpHttpPort}/mcp" }`}</code>

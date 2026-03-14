@@ -1,5 +1,5 @@
 import * as fabric from 'fabric'
-import type { PenNode, ImageFitMode } from '@/types/pen'
+import type { PenNode, ImageFitMode, VideoNode } from '@/types/pen'
 import type {
   PenFill,
   PenStroke,
@@ -17,6 +17,9 @@ import {
 import { defaultLineHeight } from './canvas-text-measure'
 import { applyRotationControls } from './canvas-controls'
 import { lookupIconByName } from '@/services/ai/icon-resolver'
+import { registerVideoDecoder, getVideoDecoder } from '@/animation/video-registry'
+import { createVideoDecoder } from '@/animation/video-decoder'
+import { getVideoFile } from '@/animation/video-file-store'
 
 function angleToCoords(
   angleDeg: number,
@@ -668,6 +671,115 @@ export function createFabricObject(
         }
         obj = placeholder
       }
+      break
+    }
+    case 'video': {
+      const vNode = node as VideoNode
+      const w = sizeToNumber(vNode.width, 320)
+      const h = sizeToNumber(vNode.height, 180)
+      const r = Math.min(cornerRadiusValue(vNode.cornerRadius), h / 2)
+
+      // Placeholder shown while decoder initializes (or if File is unavailable)
+      const videoPlaceholder = new fabric.Rect({
+        ...baseProps,
+        width: w,
+        height: h,
+        rx: r,
+        ry: r,
+        fill: '#1a1a2e',
+        strokeWidth: 0,
+      }) as FabricObjectWithPenId
+      videoPlaceholder.penNodeId = node.id
+      ;(videoPlaceholder as any).__isVideo = true
+
+      // Check if decoder already exists (e.g. created during import)
+      const existingDecoder = getVideoDecoder(node.id)
+      const file = getVideoFile(node.id)
+
+      const swapToDecoderCanvas = (handle: { canvas: HTMLCanvasElement; width: number; height: number }) => {
+        const canvas = videoPlaceholder.canvas
+        if (!canvas) {
+          requestAnimationFrame(() => swapToDecoderCanvas(handle))
+          return
+        }
+
+        const nw = handle.width
+        const nh = handle.height
+        const transform = computeImageTransform(nw, nh, w, h, 'fill', r)
+
+        const fabricImg = new fabric.FabricImage(handle.canvas, {
+          ...baseProps,
+          left: videoPlaceholder.left,
+          top: videoPlaceholder.top,
+          cropX: transform.cropX,
+          cropY: transform.cropY,
+          width: transform.cropWidth,
+          height: transform.cropHeight,
+          scaleX: transform.scaleX,
+          scaleY: transform.scaleY,
+          clipPath: transform.clipPath ?? undefined,
+          objectCaching: false, // must re-render every frame during playback
+        }) as unknown as FabricObjectWithPenId
+        fabricImg.penNodeId = node.id
+        ;(fabricImg as any).__isVideo = true
+        ;(fabricImg as any).__nativeWidth = nw
+        ;(fabricImg as any).__nativeHeight = nh
+        fabricImg.set({
+          borderColor: SELECTION_BLUE,
+          borderScaleFactor: 2,
+          cornerColor: SELECTION_BLUE,
+          cornerStrokeColor: '#ffffff',
+          cornerStyle: 'rect',
+          cornerSize: 8,
+          transparentCorners: false,
+          borderOpacityWhenMoving: 1,
+          padding: 0,
+          hoverCursor: 'default',
+        })
+        fabricImg.setControlVisible('mtr', false)
+        applyRotationControls(fabricImg)
+        if (shadow) fabricImg.shadow = shadow
+        fabricImg.visible = visible
+        fabricImg.selectable = !locked
+        fabricImg.evented = !locked
+
+        // Preserve z-order
+        const currentCanvas = videoPlaceholder.canvas
+        if (!currentCanvas) return
+        const idx = currentCanvas.getObjects().indexOf(videoPlaceholder)
+        currentCanvas.remove(videoPlaceholder)
+        if (idx >= 0) {
+          currentCanvas.insertAt(idx, fabricImg)
+        } else {
+          currentCanvas.add(fabricImg)
+        }
+        currentCanvas.requestRenderAll()
+      }
+
+      if (existingDecoder) {
+        // Decoder pre-created during import — swap immediately
+        swapToDecoderCanvas(existingDecoder)
+      } else if (file) {
+        // File available but no decoder — create one (e.g. page switch)
+        createVideoDecoder(file, w, h)
+          .then((handle) => {
+            if (handle) {
+              registerVideoDecoder(node.id, handle)
+              // Draw first frame at clip start time
+              const videoClip = vNode.clips?.find((c) => c.kind === 'video')
+              const startTimeSec = videoClip
+                ? (videoClip as import('@/types/animation').VideoClipData).sourceStart / 1000
+                : 0
+              return handle.drawFrame(startTimeSec).then(() => swapToDecoderCanvas(handle))
+            }
+          })
+          .catch((e) => console.warn('[canvas-factory] Video decoder creation failed:', e))
+      }
+      // else: no File available — .pen file loaded without video data.
+      // Placeholder stays visible with dark background.
+      // TODO: Add "Video needs reimport" text overlay + click handler
+
+      obj = videoPlaceholder
       break
     }
     case 'group': {

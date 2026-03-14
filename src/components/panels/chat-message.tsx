@@ -255,7 +255,7 @@ function ActionStepItem({
           <div
             className={cn(
               'w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-colors',
-              isDone ? 'text-emerald-500/80' : isActive ? 'text-primary' : 'text-muted-foreground/50',
+              isDone ? 'text-primary/80' : isActive ? 'text-primary' : 'text-muted-foreground/50',
             )}
           >
             {isDone ? (

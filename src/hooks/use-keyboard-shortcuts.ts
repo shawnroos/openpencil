@@ -18,6 +18,7 @@ import { syncCanvasPositionsToStore } from '@/canvas/use-canvas-sync'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
 import { zoomToFitContent } from '@/canvas/use-fabric-canvas'
 import { isPenToolActive, penToolKeyDown } from '@/canvas/pen-tool'
+import { playV2, pauseV2, isPlayingV2 } from '@/animation/use-playback-controller'
 import type { ToolType } from '@/types/canvas'
 
 const TOOL_KEYS: Record<string, ToolType> = {
@@ -41,6 +42,14 @@ export function useKeyboardShortcuts() {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable
       ) {
+        return
+      }
+
+      // Space keydown: just preventDefault to avoid page scroll
+      // Play/pause is triggered on keyup (see below) to avoid conflict
+      // with space+drag panning in use-canvas-viewport.ts
+      if (e.key === ' ') {
+        e.preventDefault()
         return
       }
 
@@ -472,7 +481,23 @@ export function useKeyboardShortcuts() {
       }
     }
 
+    // Space play/pause on keyup — avoids conflict with space+drag pan
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ') {
+        e.preventDefault()
+        if (isPlayingV2()) {
+          pauseV2()
+        } else {
+          playV2()
+        }
+      }
+    }
+
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
+    }
   }, [])
 }

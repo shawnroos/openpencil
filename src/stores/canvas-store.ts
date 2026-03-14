@@ -12,7 +12,7 @@ import { appStorage } from '@/utils/app-storage'
 
 const PREFS_KEY = 'openpencil-canvas-preferences'
 
-export type RightPanelTab = 'design' | 'code'
+export type RightPanelTab = 'create' | 'code' | 'vibe'
 
 interface CanvasPreferences {
   layerPanelOpen: boolean
@@ -78,7 +78,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   layerPanelOpen: true,
   variablesPanelOpen: false,
   codePanelOpen: false,
-  rightPanelTab: 'design',
+  rightPanelTab: 'create',
   figmaImportDialogOpen: false,
   activePageId: DEFAULT_PAGE_ID,
 
@@ -184,7 +184,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       if (typeof data.layerPanelOpen === 'boolean') set({ layerPanelOpen: data.layerPanelOpen })
       if (typeof data.variablesPanelOpen === 'boolean') set({ variablesPanelOpen: data.variablesPanelOpen })
       if (typeof data.codePanelOpen === 'boolean') set({ codePanelOpen: data.codePanelOpen })
-      if (data.rightPanelTab === 'design' || data.rightPanelTab === 'code') set({ rightPanelTab: data.rightPanelTab })
+      // Migrate stale localStorage values from old tab names
+      if (data.rightPanelTab) {
+        const raw = data.rightPanelTab as string
+        const migrated: RightPanelTab =
+          raw === 'design' || raw === 'animate' ? 'create'
+          : raw === 'code' ? 'code'
+          : raw === 'vibe' ? 'vibe'
+          : 'create'
+        set({ rightPanelTab: migrated })
+      }
     } catch { /* ignore */ }
   },
 }))

@@ -38,6 +38,8 @@ import {
 } from './drag-into-layout'
 import { createNodeForTool, isDrawingTool, toScene } from './canvas-node-creator'
 import { handleObjectModified } from './canvas-object-modified'
+import { isPlaybackActive } from '@/animation/canvas-bridge'
+import { getPlaybackController } from '@/animation/use-playback-controller'
 
 export function useCanvasEvents() {
   useEffect(() => {
@@ -367,6 +369,12 @@ export function useCanvasEvents() {
       canvas.on('mouse:down', (opt) => {
         if (useAIStore.getState().isStreaming) return
 
+        // Pause animation playback on canvas click
+        if (isPlaybackActive()) {
+          getPlaybackController()?.pause()
+          return
+        }
+
         if (pendingBatchCloseRaf !== null) {
           cancelAnimationFrame(pendingBatchCloseRaf)
           pendingBatchCloseRaf = null
@@ -654,6 +662,7 @@ export function useCanvasEvents() {
       // entry.  We use the pre-modification snapshot captured in mouse:down
       // as the batch base to guarantee a correct undo point.
       canvas.on('object:modified', (opt) => {
+        if (isPlaybackActive()) return // suppress during animation playback
         if (pendingBatchCloseRaf !== null) {
           cancelAnimationFrame(pendingBatchCloseRaf)
           pendingBatchCloseRaf = null

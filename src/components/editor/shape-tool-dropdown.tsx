@@ -6,6 +6,7 @@ import {
   PenTool,
   Sparkles,
   ImagePlus,
+  Film,
   ChevronDown,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -39,6 +40,7 @@ type DropdownItem = ToolItem | ActionItem
 interface ShapeToolDropdownProps {
   onIconPickerOpen: () => void
   onImageImport: () => void
+  onVideoImport: () => void
 }
 
 const TOOL_ICON_MAP: Record<string, ReactNode> = {
@@ -51,6 +53,7 @@ const TOOL_ICON_MAP: Record<string, ReactNode> = {
 export default function ShapeToolDropdown({
   onIconPickerOpen,
   onImageImport,
+  onVideoImport,
 }: ShapeToolDropdownProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -93,6 +96,7 @@ export default function ShapeToolDropdown({
     { type: 'tool', tool: 'line', icon: <Minus size={18} strokeWidth={1.5} />, label: t('shapes.line') },
     { type: 'action', key: 'icon', icon: <Sparkles size={18} strokeWidth={1.5} />, label: t('shapes.icon'), onAction: onIconPickerOpen },
     { type: 'action', key: 'image', icon: <ImagePlus size={18} strokeWidth={1.5} />, label: t('shapes.importImageSvg'), onAction: onImageImport },
+    { type: 'action', key: 'video', icon: <Film size={18} strokeWidth={1.5} />, label: 'Import Video\u2026', onAction: onVideoImport },
     { type: 'tool', tool: 'path', icon: <PenTool size={18} strokeWidth={1.5} />, label: t('shapes.pen') },
   ]
 
@@ -146,8 +150,8 @@ export default function ShapeToolDropdown({
             onClick={() => setOpen(false)}
           />
 
-          {/* Dropdown panel — below the chevron, offset to the right */}
-          <div className="absolute top-full left-[calc(100%+8px)] mt-1 z-50 bg-card border border-border rounded-lg shadow-xl py-1.5 min-w-[220px]">
+          {/* Dropdown panel — anchored to top of wrapper, offset to the right */}
+          <div className="absolute top-0 left-[calc(100%+8px)] z-50 bg-card border border-border rounded-lg shadow-xl py-1.5 min-w-[220px] max-h-[calc(100vh-16px)] overflow-y-auto">
             {items.map((item) => {
               const key = item.type === 'tool' ? item.tool : item.key
               const isActive = item.type === 'tool' && activeTool === item.tool

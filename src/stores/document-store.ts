@@ -4,8 +4,10 @@ import type { PenDocument, PenNode, GroupNode, RefNode } from '@/types/pen'
 import type { VariableDefinition } from '@/types/variables'
 import { useHistoryStore } from '@/stores/history-store'
 import { useCanvasStore } from '@/stores/canvas-store'
+import { animationPauseMiddleware } from '@/stores/animation-pause-middleware'
 import { getDefaultTheme } from '@/variables/resolve-variables'
 import { replaceVariableRefsInTree } from '@/variables/replace-refs'
+import { copyVideoFile } from '@/animation/video-file-store'
 import {
   createEmptyDocument,
   findNodeInTree,
@@ -24,9 +26,11 @@ import {
   getAllChildren,
   migrateToPages,
   ensureDocumentNodeIds,
+  ensureNodeClips,
   DEFAULT_PAGE_ID,
 } from './document-tree-utils'
 import { createPageActions } from './document-store-pages'
+import { registerDocumentStore } from './composition-accessors'
 
 interface DocumentStoreState {
   document: PenDocument
@@ -109,8 +113,8 @@ function _setChildren(doc: PenDocument, children: PenNode[]): PenDocument {
   return setActivePageChildren(doc, useCanvasStore.getState().activePageId, children)
 }
 
-export const useDocumentStore = create<DocumentStoreState>(
-  (set, get) => ({
+export const useDocumentStore = create<DocumentStoreState>()(
+  animationPauseMiddleware((set, get) => ({
     document: createEmptyDocument(),
     fileName: null,
     isDirty: false,
@@ -119,13 +123,15 @@ export const useDocumentStore = create<DocumentStoreState>(
 
     addNode: (parentId, node, index) => {
       useHistoryStore.getState().pushState(get().document)
+      // Ensure new nodes have a default clip (every node is a timeline citizen)
+      const nodeWithClips = ensureNodeClips(node)
       set((s) => ({
         document: _setChildren(
           s.document,
           // Default to index 0 (prepend) so new items appear at the top of
           // the layer panel = frontmost on canvas. Callers can pass an
           // explicit index to override.
-          insertNodeInTree(_children(s), parentId, node, index ?? 0),
+          insertNodeInTree(_children(s), parentId, nodeWithClips, index ?? 0),
         ),
         isDirty: true,
       }))
@@ -281,6 +287,10 @@ export const useDocumentStore = create<DocumentStoreState>(
       // Regular duplication for non-reusable nodes
       const cloneWithNewIds = (n: PenNode): PenNode => {
         const cloned = { ...n, id: nanoid() } as PenNode
+        // Remap clip IDs so duplicated clips are independent
+        if (cloned.clips) {
+          cloned.clips = cloned.clips.map((c) => ({ ...c, id: nanoid(8) }))
+        }
         if ('children' in cloned && cloned.children) {
           cloned.children = cloned.children.map(cloneWithNewIds)
         }
@@ -289,6 +299,11 @@ export const useDocumentStore = create<DocumentStoreState>(
 
       const clone = cloneWithNewIds(node)
       clone.name = (clone.name ?? clone.type) + ' copy'
+
+      // Copy video File reference for duplicated video nodes
+      if (node.type === 'video') {
+        copyVideoFile(node.id, clone.id)
+      }
 
       const parent = findParentInTree(children, id)
       const parentId = parent ? parent.id : null
@@ -345,7 +360,7 @@ export const useDocumentStore = create<DocumentStoreState>(
       })) as PenNode[]
 
       const groupId = nanoid()
-      const group: GroupNode = {
+      const group = ensureNodeClips({
         id: groupId,
         type: 'group',
         name: 'Group',
@@ -354,7 +369,7 @@ export const useDocumentStore = create<DocumentStoreState>(
         width: maxX - minX,
         height: maxY - minY,
         children: groupChildren,
-      }
+      } as GroupNode) as GroupNode
 
       // Find insertion position (position of first selected node)
       const firstParent = findParentInTree(children, nodeIds[0])
@@ -739,7 +754,14 @@ export const useDocumentStore = create<DocumentStoreState>(
     markClean: () => set({ isDirty: false }),
     setFileHandle: (fileHandle) => set({ fileHandle }),
     setSaveDialogOpen: (saveDialogOpen) => set({ saveDialogOpen }),
-  }),
+  })),
+)
+
+// Wire up composition accessors so timeline-store can read/write
+// document.composition without importing document-store directly.
+registerDocumentStore(
+  useDocumentStore.getState as () => { document: import('@/types/pen').PenDocument },
+  useDocumentStore.setState,
 )
 
 export {

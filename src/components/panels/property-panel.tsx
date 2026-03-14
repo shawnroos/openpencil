@@ -7,6 +7,7 @@ import type { PenNode, ContainerProps, RefNode, PathNode, ImageNode, IconFontNod
 import { Component, Diamond, ArrowUpRight, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
+// SectionHeader moved to AnimationSection
 import SizeSection from './size-section'
 import LayoutSection from './layout-section'
 import FillSection from './fill-section'
@@ -17,6 +18,7 @@ import TextLayoutSection from './text-layout-section'
 import EffectsSection from './effects-section'
 import ExportSection from './export-section'
 import IconSection from './icon-section'
+import AnimationSection from './animation-section'
 import ImageSection from './image-section'
 
 /** Properties stored directly on the RefNode (instance-level), not as overrides. */
@@ -121,8 +123,9 @@ export default function PropertyPanel({ embedded }: { embedded?: boolean } = {})
     displayNode.type === 'frame' || displayNode.type === 'group' || displayNode.type === 'rectangle'
   const hasLayout = isContainer
   const isImage = displayNode.type === 'image'
-  const hasFill = displayNode.type !== 'line' && !isImage
-  const hasStroke = !isImage
+  const isVideo = displayNode.type === 'video'
+  const hasFill = displayNode.type !== 'line' && !isImage && !isVideo
+  const hasStroke = !isImage && !isVideo
   const hasCornerRadius =
     displayNode.type === 'rectangle' || displayNode.type === 'frame' || isImage
   const hasEffects = true
@@ -359,6 +362,10 @@ export default function PropertyPanel({ embedded }: { embedded?: boolean } = {})
             </div>
           </>
         )}
+
+        {/* Animation section — unified design + animation editing */}
+        <Separator />
+        <AnimationSection />
 
         <Separator />
         <div className="px-3 py-2">

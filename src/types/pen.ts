@@ -5,6 +5,7 @@ import type {
   StyledTextSegment,
 } from './styles'
 import type { VariableDefinition } from './variables'
+import type { AnimationClip, CompositionSettings } from './animation'
 
 // --- Page ---
 
@@ -21,6 +22,7 @@ export interface PenDocument {
   name?: string
   themes?: Record<string, string[]>
   variables?: Record<string, VariableDefinition>
+  composition?: CompositionSettings
   pages?: PenPage[]
   children: PenNode[]
 }
@@ -37,6 +39,7 @@ export type PenNodeType =
   | 'path'
   | 'text'
   | 'image'
+  | 'video'
   | 'icon_font'
   | 'ref'
 
@@ -59,6 +62,7 @@ export interface PenNodeBase {
   flipX?: boolean
   flipY?: boolean
   theme?: Record<string, string>
+  clips?: AnimationClip[]
 }
 
 // --- Container (shared layout props) ---
@@ -177,6 +181,17 @@ export interface ImageNode extends PenNodeBase {
   effects?: PenEffect[]
 }
 
+export interface VideoNode extends PenNodeBase {
+  type: 'video'
+  src: string // blob URL or data URL of the video file
+  mimeType?: string // e.g. 'video/mp4', 'video/webm'
+  videoDuration?: number // video duration in ms (intrinsic, from file metadata)
+  width?: SizingBehavior
+  height?: SizingBehavior
+  cornerRadius?: number | [number, number, number, number]
+  effects?: PenEffect[]
+}
+
 export interface IconFontNode extends PenNodeBase {
   type: 'icon_font'
   iconFontName: string
@@ -206,5 +221,6 @@ export type PenNode =
   | PathNode
   | TextNode
   | ImageNode
+  | VideoNode
   | IconFontNode
   | RefNode

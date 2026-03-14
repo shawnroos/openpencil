@@ -15,21 +15,23 @@
 
 import type { PenDocument, PenNode } from '@/types/pen'
 import type { PenFill, PenStroke, GradientStop } from '@/types/styles'
+import { ensureTreeClips } from '@/stores/document-tree-utils'
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 export function normalizePenDocument(doc: PenDocument): PenDocument {
+  const compositionDuration = doc.composition?.duration
   const normalized = {
     ...doc,
-    children: doc.children.map((n) => normalizeNode(n)),
+    children: ensureTreeClips(doc.children.map((n) => normalizeNode(n)), compositionDuration),
   }
   // Normalize all pages' children too
   if (normalized.pages && normalized.pages.length > 0) {
     normalized.pages = normalized.pages.map((p) => ({
       ...p,
-      children: p.children.map((n) => normalizeNode(n)),
+      children: ensureTreeClips(p.children.map((n) => normalizeNode(n)), compositionDuration),
     }))
   }
   return normalized

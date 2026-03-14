@@ -429,7 +429,7 @@ ${generatedCode}`
                 onClick={handleCopy}
                 className="h-5 w-5"
               >
-                {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                {copied ? <Check size={12} className="text-primary" /> : <Copy size={12} />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>{copied ? t('code.copied') : t('code.copyClipboard')}</TooltipContent>
