@@ -4,7 +4,7 @@ import { useCanvasStore } from '@/stores/canvas-store'
 import { useDocumentStore, getActivePageChildren } from '@/stores/document-store'
 import { Separator } from '@/components/ui/separator'
 import type { PenNode, ContainerProps, RefNode, PathNode, ImageNode, IconFontNode } from '@/types/pen'
-import { Component, Diamond, ArrowUpRight, Unlink, X } from 'lucide-react'
+import { Component, Diamond, ArrowUpRight, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { FabricObjectWithPenId } from '@/canvas/canvas-object-factory'
 import SectionHeader from '@/components/shared/section-header'
@@ -18,6 +18,7 @@ import TextLayoutSection from './text-layout-section'
 import EffectsSection from './effects-section'
 import ExportSection from './export-section'
 import IconSection from './icon-section'
+import AnimationSection from './animation-section'
 import ImageSection from './image-section'
 
 /** Properties stored directly on the RefNode (instance-level), not as overrides. */
@@ -362,47 +363,9 @@ export default function PropertyPanel({ embedded }: { embedded?: boolean } = {})
           </>
         )}
 
-        {/* v2: Animation clips */}
-        {node.clips && node.clips.length > 0 && (
-          <>
-            <Separator />
-            <div className="px-3 py-2 space-y-1.5">
-              <SectionHeader title="Animation Clips" />
-              <div className="space-y-1">
-                {node.clips.map((clip) => (
-                  <div key={clip.id} className="flex items-center gap-1.5 group/clip">
-                    <span className="text-[11px] text-muted-foreground flex-1 truncate">
-                      {clip.kind === 'animation'
-                        ? (clip.inEffect || clip.outEffect
-                          ? [clip.inEffect?.effectId, clip.outEffect?.effectId].filter(Boolean).join(' → ')
-                          : (clip.effectId ?? 'Custom'))
-                        : 'Video'}
-                    </span>
-                    <span className="text-[11px] text-foreground tabular-nums">
-                      {(clip.startTime / 1000).toFixed(1)}s
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">/</span>
-                    <span className="text-[11px] text-foreground tabular-nums">
-                      {(clip.duration / 1000).toFixed(1)}s
-                    </span>
-                    <button
-                      type="button"
-                      className="p-0.5 opacity-0 group-hover/clip:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                      title="Remove clip"
-                      onClick={() => {
-                        if (!activeId) return
-                        const remaining = (node.clips ?? []).filter((c) => c.id !== clip.id)
-                        updateNode(activeId, { clips: remaining.length > 0 ? remaining : undefined } as Partial<PenNode>)
-                      }}
-                    >
-                      <X size={10} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+        {/* Animation section — unified design + animation editing */}
+        <Separator />
+        <AnimationSection />
 
         <Separator />
         <div className="px-3 py-2">
