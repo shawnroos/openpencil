@@ -1,64 +1,38 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
-import { X, Search, Upload, Download, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useTranslation } from 'react-i18next'
+/**
+ * Template picker panel — replaces UIKit component browser with Jeans content templates.
+ * Reuses the same floating panel pattern (resize, search, close).
+ */
+
+import { useState, useRef, useCallback } from 'react'
+import { X, Search, Plus } from 'lucide-react'
 import { useUIKitStore } from '@/stores/uikit-store'
 import { useDocumentStore } from '@/stores/document-store'
-import { importKitFromFile, exportKit } from '@/uikit/kit-import-export'
-import ComponentBrowserGrid from './component-browser-grid'
-import type { ComponentCategory } from '@/types/uikit'
+import { CONTENT_TEMPLATES } from '@/vibekit/content-templates'
 
-const MIN_WIDTH = 420
-const MIN_HEIGHT = 300
-const DEFAULT_WIDTH = 520
-const DEFAULT_HEIGHT = 460
-
-const CATEGORIES: { value: ComponentCategory | null; labelKey: string }[] = [
-  { value: null, labelKey: 'componentBrowser.category.all' },
-  { value: 'buttons', labelKey: 'componentBrowser.category.buttons' },
-  { value: 'inputs', labelKey: 'componentBrowser.category.inputs' },
-  { value: 'cards', labelKey: 'componentBrowser.category.cards' },
-  { value: 'navigation', labelKey: 'componentBrowser.category.nav' },
-  { value: 'layout', labelKey: 'componentBrowser.category.layout' },
-  { value: 'feedback', labelKey: 'componentBrowser.category.feedback' },
-  { value: 'data-display', labelKey: 'componentBrowser.category.data' },
-  { value: 'other', labelKey: 'componentBrowser.category.other' },
-]
+const MIN_WIDTH = 380
+const MIN_HEIGHT = 280
+const DEFAULT_WIDTH = 440
+const DEFAULT_HEIGHT = 400
 
 export default function ComponentBrowserPanel() {
-  const { t } = useTranslation()
-  const kits = useUIKitStore((s) => s.kits)
-  const searchQuery = useUIKitStore((s) => s.searchQuery)
-  const setSearchQuery = useUIKitStore((s) => s.setSearchQuery)
-  const activeCategory = useUIKitStore((s) => s.activeCategory)
-  const setActiveCategory = useUIKitStore((s) => s.setActiveCategory)
-  const activeKitId = useUIKitStore((s) => s.activeKitId)
-  const setActiveKitId = useUIKitStore((s) => s.setActiveKitId)
   const toggleBrowser = useUIKitStore((s) => s.toggleBrowser)
-  const importKitAction = useUIKitStore((s) => s.importKit)
-  const removeKit = useUIKitStore((s) => s.removeKit)
-
+  const [searchQuery, setSearchQuery] = useState('')
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT)
-  const [confirmDeleteKitId, setConfirmDeleteKitId] = useState<string | null>(null)
-
   const panelRef = useRef<HTMLDivElement>(null)
   const resizeRef = useRef<{
     edge: 'right' | 'bottom' | 'corner'
     startX: number; startY: number; startW: number; startH: number
   } | null>(null)
 
-  /* --- Resize --- */
   const handleResizeStart = useCallback(
     (edge: 'right' | 'bottom' | 'corner', e: React.PointerEvent) => {
       e.preventDefault()
       e.stopPropagation()
       resizeRef.current = {
         edge,
-        startX: e.clientX,
-        startY: e.clientY,
-        startW: panelWidth,
-        startH: panelHeight,
+        startX: e.clientX, startY: e.clientY,
+        startW: panelWidth, startH: panelHeight,
       }
       e.currentTarget.setPointerCapture(e.pointerId)
     },
@@ -84,43 +58,19 @@ export default function ComponentBrowserPanel() {
     e.currentTarget.releasePointerCapture(e.pointerId)
   }, [])
 
-  /* --- Import --- */
-  const handleImport = useCallback(async () => {
-    const kit = await importKitFromFile()
-    if (kit) {
-      importKitAction(kit)
-    }
-  }, [importKitAction])
+  const handleInsertTemplate = useCallback((templateId: string) => {
+    const template = CONTENT_TEMPLATES.find((t) => t.id === templateId)
+    if (!template) return
 
-  /* --- Export --- */
-  const handleExport = useCallback(async () => {
-    const doc = useDocumentStore.getState().document
-    await exportKit(doc, [], doc.name ?? 'My Kit')
+    const node = template.create()
+    useDocumentStore.getState().addNode(null, node)
   }, [])
 
-  /* --- Delete imported kit --- */
-  const handleDeleteKit = useCallback(
-    (kitId: string) => {
-      removeKit(kitId)
-      setConfirmDeleteKitId(null)
-    },
-    [removeKit],
-  )
-
-  /* --- Imported kits for delete list --- */
-  const importedKits = useMemo(() => kits.filter((k) => !k.builtIn), [kits])
-
-  /* --- Visible categories (only show tabs that have components) --- */
-  const visibleCategories = useMemo(() => {
-    const categorySet = new Set<ComponentCategory>()
-    const targetKits = activeKitId ? kits.filter((k) => k.id === activeKitId) : kits
-    for (const kit of targetKits) {
-      for (const comp of kit.components) {
-        categorySet.add(comp.category)
-      }
-    }
-    return CATEGORIES.filter((c) => c.value === null || categorySet.has(c.value))
-  }, [kits, activeKitId])
+  const filtered = searchQuery.trim()
+    ? CONTENT_TEMPLATES.filter((t) =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : CONTENT_TEMPLATES
 
   return (
     <div
@@ -133,156 +83,66 @@ export default function ComponentBrowserPanel() {
 
       {/* Header */}
       <div className="relative h-10 flex items-center justify-between px-3 border-b border-border shrink-0">
-        <span className="text-sm font-medium text-foreground">{t('componentBrowser.title')}</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            title={t('componentBrowser.exportKit')}
-          >
-            <Download size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={handleImport}
-            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            title={t('componentBrowser.importKit')}
-          >
-            <Upload size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={toggleBrowser}
-            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X size={14} />
-          </button>
+        <span className="text-sm font-medium text-foreground">Templates</span>
+        <button
+          type="button"
+          onClick={toggleBrowser}
+          className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative px-3 py-1.5 border-b border-border shrink-0">
+        <div className="relative">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search templates..."
+            className="w-full h-7 pl-7 pr-2 text-xs bg-muted/50 border border-border rounded-md text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
+          />
         </div>
       </div>
 
-      {/* Kit filter + Category tabs */}
-      <div className="relative shrink-0">
-        {/* Kit selector row */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border">
-          <span className="text-xs text-muted-foreground shrink-0">{t('componentBrowser.kit')}</span>
-          <select
-            value={activeKitId ?? ''}
-            onChange={(e) => setActiveKitId(e.target.value || null)}
-            className="text-xs bg-transparent border border-border rounded px-1.5 py-0.5 text-foreground outline-none min-w-0"
-          >
-            <option value="">{t('componentBrowser.all')}</option>
-            {kits.map((k) => (
-              <option key={k.id} value={k.id}>
-                {k.name}{k.builtIn ? '' : ` ${t('componentBrowser.imported')}`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Imported kits list — each with individual delete */}
-        {importedKits.length > 0 && (
-          <div className="flex flex-col gap-0 border-b border-border">
-            {importedKits.map((kit) => (
-              <div
-                key={kit.id}
-                className="flex items-center gap-2 px-3 py-1 hover:bg-muted/50 transition-colors"
-              >
-                <span className="text-xs text-foreground truncate flex-1">{kit.name}</span>
-                <span className="text-[10px] text-muted-foreground shrink-0">
-                  {kit.components.length} {t('componentBrowser.components')}
-                </span>
-                {confirmDeleteKitId === kit.id ? (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteKit(kit.id)}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
-                    >
-                      {t('common.delete')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDeleteKitId(null)}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDeleteKitId(kit.id)}
-                    className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                    title={t('componentBrowser.deleteKit', { name: kit.name })}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Category pills */}
-        <div className="flex items-center gap-1 px-3 py-1.5 border-b border-border overflow-x-auto">
-          {visibleCategories.map((cat) => (
+      {/* Template grid */}
+      <div className="relative flex-1 overflow-y-auto p-3">
+        <div className="grid grid-cols-2 gap-2">
+          {filtered.map((template) => (
             <button
-              key={cat.labelKey}
+              key={template.id}
               type="button"
-              onClick={() => setActiveCategory(cat.value)}
-              className={cn(
-                'px-2.5 py-1 text-xs rounded-full whitespace-nowrap transition-colors',
-                activeCategory === cat.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground',
-              )}
+              onClick={() => handleInsertTemplate(template.id)}
+              className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border bg-background hover:bg-muted hover:border-primary/30 transition-all cursor-pointer group"
             >
-              {t(cat.labelKey)}
+              <div className="w-full aspect-[3/4] rounded bg-muted/50 border border-border/50 flex items-center justify-center">
+                <Plus size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-[11px] font-medium text-foreground text-center leading-tight">
+                {template.name}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative shrink-0 px-3 py-2 border-b border-border">
-        <div className="flex items-center gap-2 bg-muted rounded-lg px-2.5 py-1.5">
-          <Search size={14} className="text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            placeholder={t('componentBrowser.searchComponents')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-          />
-        </div>
-      </div>
-
-      {/* Grid */}
-      <div className="relative flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-        <ComponentBrowserGrid
-          kits={kits}
-          searchQuery={searchQuery}
-          activeCategory={activeCategory}
-          activeKitId={activeKitId}
-        />
-      </div>
-
       {/* Resize handles */}
       <div
-        className="absolute top-0 -right-1 w-2 h-full cursor-ew-resize"
+        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
         onPointerDown={(e) => handleResizeStart('right', e)}
         onPointerMove={handleResizeMove}
         onPointerUp={handleResizeEnd}
       />
       <div
-        className="absolute -bottom-1 left-0 w-full h-2 cursor-ns-resize"
+        className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize"
         onPointerDown={(e) => handleResizeStart('bottom', e)}
         onPointerMove={handleResizeMove}
         onPointerUp={handleResizeEnd}
       />
       <div
-        className="absolute -bottom-1 -right-1 w-4 h-4 cursor-nwse-resize"
+        className="absolute right-0 bottom-0 w-3 h-3 cursor-nwse-resize"
         onPointerDown={(e) => handleResizeStart('corner', e)}
         onPointerMove={handleResizeMove}
         onPointerUp={handleResizeEnd}
