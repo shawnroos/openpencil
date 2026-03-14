@@ -160,14 +160,14 @@ export default function UpdateReadyBanner() {
           )}
 
           {updateState.status === 'error' && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-300 inline-flex items-start gap-2">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive inline-flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <span className="leading-relaxed break-words">{updateState.error || t('updater.unknownError')}</span>
             </div>
           )}
 
           {updateState.status === 'downloaded' && (
-            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-2">
+            <div className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-primary inline-flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>{t('updater.restartHint')}</span>
             </div>

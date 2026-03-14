@@ -22,11 +22,11 @@
 }
 
 .timeline-editor-time-unit {
-  border-right-color: oklch(0.556 0 0 / 0.2);
+  border-right-color: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
 }
 
 .timeline-editor-time-unit-big {
-  border-right-color: oklch(0.556 0 0 / 0.4);
+  border-right-color: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
 }
 
 .timeline-editor-time-unit-scale {
@@ -39,14 +39,15 @@
 .timeline-editor-edit-row {
   background-image:
     linear-gradient(var(--card), var(--card)),
-    linear-gradient(90deg, oklch(0.556 0 0 / 0.08) 1px, transparent 0);
-  border-bottom: 1px solid oklch(0.556 0 0 / 0.06);
+    linear-gradient(90deg, color-mix(in srgb, var(--muted-foreground) 8%, transparent) 1px, transparent 0);
+  border-bottom: 1px solid color-mix(in srgb, var(--muted-foreground) 6%, transparent);
 }
 
-/* Action blocks (phases + video clips) */
+/* Action blocks (phases + video clips) — renderers handle their own bg/border */
 .timeline-editor-action {
-  background-color: oklch(0.55 0.12 250 / 0.15);
-  border-radius: 3px;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: visible;
   transition: opacity 80ms ease;
 }
 
@@ -67,22 +68,22 @@
 }
 
 .timeline-editor-action .timeline-editor-action-left-stretch::after {
-  border-left-color: oklch(0.985 0 0 / 0.3);
+  border-left-color: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
 
 .timeline-editor-action .timeline-editor-action-right-stretch::after {
-  border-right-color: oklch(0.985 0 0 / 0.3);
+  border-right-color: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
 
 /* Playhead cursor */
 .timeline-editor-cursor {
-  border-left-color: oklch(0.985 0 0 / 0.9);
-  border-right-color: oklch(0.985 0 0 / 0.9);
+  border-left-color: color-mix(in srgb, var(--foreground) 90%, transparent);
+  border-right-color: color-mix(in srgb, var(--foreground) 90%, transparent);
 }
 
 /* Drag snap line */
 .timeline-editor-drag-line {
-  border-left-color: oklch(0.623 0.214 259 / 0.5);
+  border-left-color: color-mix(in srgb, var(--primary) 50%, transparent);
 }
 
 /* Edit area scrollbar */
@@ -95,6 +96,11 @@
 /* Click area cursor */
 .timeline-editor-time-area-interact {
   cursor: pointer;
+}
+
+/* Selected row highlight */
+.timeline-editor-edit-row.timeline-editor-edit-row-selected {
+  background-color: color-mix(in srgb, var(--primary) 8%, var(--card));
 }
 
 /* Keyframe diamond hover */

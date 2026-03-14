@@ -108,7 +108,7 @@ function AgentStatusButton() {
               {agentCount === 0 && (
                 <Blocks size={14} strokeWidth={1.5} />
               )}
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
               <span className="text-[11px] text-muted-foreground hidden sm:inline">
                 {tooltipParts.join(' · ')}
               </span>

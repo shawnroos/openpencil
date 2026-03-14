@@ -461,7 +461,8 @@ function renderNode(
           width={w}
           height={h}
           rx={rx}
-          fill="#E5E7EB"
+          fill="currentColor"
+          className="text-muted"
           opacity={opacity < 1 ? opacity : undefined}
         />
       )

@@ -45,15 +45,11 @@ export function useKeyboardShortcuts() {
         return
       }
 
-      // Space: play/pause (always available, not gated on mode)
-      // Space+drag = pan is handled by use-canvas-viewport.ts
+      // Space keydown: just preventDefault to avoid page scroll
+      // Play/pause is triggered on keyup (see below) to avoid conflict
+      // with space+drag panning in use-canvas-viewport.ts
       if (e.key === ' ') {
         e.preventDefault()
-        if (isPlayingV2()) {
-          pauseV2()
-        } else {
-          playV2()
-        }
         return
       }
 
@@ -485,7 +481,23 @@ export function useKeyboardShortcuts() {
       }
     }
 
+    // Space play/pause on keyup — avoids conflict with space+drag pan
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ') {
+        e.preventDefault()
+        if (isPlayingV2()) {
+          pauseV2()
+        } else {
+          playV2()
+        }
+      }
+    }
+
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
+    }
   }, [])
 }

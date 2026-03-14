@@ -77,7 +77,7 @@ export function FixedChecklist({ messages, isStreaming }: { messages: ChatMessag
                   className={cn(
                     'w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0',
                     item.done
-                      ? 'border-emerald-500/70 text-emerald-500/80'
+                      ? 'border-primary/70 text-primary/80'
                       : item.active
                         ? 'border-primary/70 text-primary'
                         : 'border-border/70 text-muted-foreground/50',
@@ -101,7 +101,7 @@ export function FixedChecklist({ messages, isStreaming }: { messages: ChatMessag
                     return (
                       <span key={di} className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
                         {status === 'done' && (
-                          <span className="w-2.5 h-2.5 rounded-full border border-emerald-500/70 text-emerald-500/80 flex items-center justify-center shrink-0">
+                          <span className="w-2.5 h-2.5 rounded-full border border-primary/70 text-primary/80 flex items-center justify-center shrink-0">
                             <Check size={7} strokeWidth={2.5} />
                           </span>
                         )}
@@ -111,7 +111,7 @@ export function FixedChecklist({ messages, isStreaming }: { messages: ChatMessag
                           </span>
                         )}
                         {status === 'error' && (
-                          <AlertTriangle size={10} className="text-amber-500/80 shrink-0" />
+                          <AlertTriangle size={10} className="text-destructive/80 shrink-0" />
                         )}
                         <span>{text}</span>
                       </span>

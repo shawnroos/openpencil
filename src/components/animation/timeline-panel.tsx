@@ -4,7 +4,7 @@ import TimelineEditor from './timeline-editor'
 
 export default function TimelinePanel() {
   return (
-    <div className="border-t border-border bg-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="border-t border-border bg-card flex flex-col" style={{ height: 240 }}>
       {/* Top row: playback controls */}
       <div className="flex items-center gap-3 px-3 py-1.5">
         <PlaybackControls />

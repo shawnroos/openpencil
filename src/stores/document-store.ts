@@ -360,7 +360,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
       })) as PenNode[]
 
       const groupId = nanoid()
-      const group: GroupNode = {
+      const group = ensureNodeClips({
         id: groupId,
         type: 'group',
         name: 'Group',
@@ -369,7 +369,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
         width: maxX - minX,
         height: maxY - minY,
         children: groupChildren,
-      }
+      } as GroupNode) as GroupNode
 
       // Find insertion position (position of first selected node)
       const firstParent = findParentInTree(children, nodeIds[0])

@@ -122,12 +122,12 @@ export default function LayerItem({
   }
 
   const dropInsideHighlight =
-    dropPosition === 'inside' ? 'ring-2 ring-inset ring-blue-500 bg-blue-500/10' : ''
+    dropPosition === 'inside' ? 'ring-2 ring-inset ring-ring bg-accent/30' : ''
 
   return (
     <div className="relative" data-layer-id={id}>
       {dropPosition === 'above' && (
-        <div className="absolute top-0 left-2 right-2 h-0.5 bg-blue-500 rounded-full z-10" />
+        <div className="absolute top-0 left-2 right-2 h-0.5 bg-ring rounded-full z-10" />
       )}
       <div
         className={`group/layer flex items-center h-7 px-1 gap-1 cursor-pointer rounded text-xs transition-colors ${
@@ -218,7 +218,7 @@ export default function LayerItem({
         </button>
       </div>
       {dropPosition === 'below' && (
-        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-blue-500 rounded-full z-10" />
+        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-ring rounded-full z-10" />
       )}
     </div>
   )

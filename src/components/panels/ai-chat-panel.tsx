@@ -97,30 +97,7 @@ function ConcurrencyButton() {
   )
 }
 
-/**
- * Minimized AI bar — a compact clickable pill.
- * Parent is responsible for placing it in the layout.
- */
-export function AIChatMinimizedBar() {
-  const isMinimized = useAIStore((s) => s.isMinimized)
-  const toggleMinimize = useAIStore((s) => s.toggleMinimize)
-
-  if (!isMinimized) return null
-
-  return (
-    <button
-      type="button"
-      onClick={toggleMinimize}
-      className="h-8 bg-card border border-border rounded-lg flex items-center gap-1.5 px-3 shadow-lg hover:bg-accent transition-colors"
-    >
-      <MessageSquare size={13} className="text-muted-foreground" />
-      <span className="text-xs text-muted-foreground max-w-[120px] truncate">
-        {useAIStore.getState().chatTitle}
-      </span>
-      <ChevronUp size={12} className="text-muted-foreground" />
-    </button>
-  )
-}
+// AIChatMinimizedBar removed — AI chat is now exclusively in the Vibe tab
 
 /**
  * Expanded AI chat panel — floating, draggable.
