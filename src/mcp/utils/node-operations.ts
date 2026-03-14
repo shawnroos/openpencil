@@ -1,4 +1,5 @@
 import type { PenDocument, PenNode, RefNode } from '../../types/pen'
+import { ensureNodeClips } from '../../stores/document-tree-utils'
 
 /** Get the working children for an MCP operation. When pageId is given, targets that page; otherwise targets the first page (or doc.children). */
 export function getDocChildren(doc: PenDocument, pageId?: string): PenNode[] {
@@ -94,12 +95,15 @@ export function insertNodeInTree(
   node: PenNode,
   index?: number,
 ): PenNode[] {
+  // Ensure every MCP-inserted node has a default clip (timeline citizen)
+  const nodeWithClips = ensureNodeClips(node)
+
   if (parentId === null) {
     const arr = [...nodes]
     if (index !== undefined) {
-      arr.splice(index, 0, node)
+      arr.splice(index, 0, nodeWithClips)
     } else {
-      arr.push(node)
+      arr.push(nodeWithClips)
     }
     return arr
   }
@@ -108,9 +112,9 @@ export function insertNodeInTree(
     if (n.id === parentId) {
       const children = 'children' in n && n.children ? [...n.children] : []
       if (index !== undefined) {
-        children.splice(index, 0, node)
+        children.splice(index, 0, nodeWithClips)
       } else {
-        children.push(node)
+        children.push(nodeWithClips)
       }
       return { ...n, children } as PenNode
     }

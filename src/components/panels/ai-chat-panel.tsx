@@ -46,13 +46,6 @@ const QUICK_ACTIONS = [
   },
 ]
 
-const CORNER_CLASSES: Record<PanelCorner, string> = {
-  'top-left': 'top-3 left-3',
-  'top-right': 'top-3 right-3',
-  'bottom-left': 'bottom-3 left-3',
-  'bottom-right': 'bottom-3 right-3',
-}
-
 function resolveNextModel(
   models: Array<{ value: string }>,
   currentModel: string,
@@ -109,21 +102,12 @@ export default function AIChatPanel({ embedded = false }: { embedded?: boolean }
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const dragRef = useRef<{ offsetX: number; offsetY: number } | null>(null)
-  const resizeRef = useRef<{ startY: number; startHeight: number; startTop: number } | null>(null)
-  const [dragStyle, setDragStyle] = useState<React.CSSProperties | null>(null)
-  const [panelHeight, setPanelHeight] = useState(400) // Default height
-
   const messages = useAIStore((s) => s.messages)
   const isStreaming = useAIStore((s) => s.isStreaming)
   const clearMessages = useAIStore((s) => s.clearMessages)
-  const panelCorner = useAIStore((s) => s.panelCorner)
-  const isMinimized = useAIStore((s) => s.isMinimized)
-  const setPanelCorner = useAIStore((s) => s.setPanelCorner)
   const chatTitle = useAIStore((s) => s.chatTitle)
   const selectedIds = useCanvasStore((s) => s.selection.selectedIds)
   const stopStreaming = useAIStore((s) => s.stopStreaming)
-  const toggleMinimize = useAIStore((s) => s.toggleMinimize)
   const hydrateModelPreference = useAIStore((s) => s.hydrateModelPreference)
   const model = useAIStore((s) => s.model)
   const setModel = useAIStore((s) => s.setModel)
@@ -442,15 +426,7 @@ export default function AIChatPanel({ embedded = false }: { embedded?: boolean }
   return (
     <div
       ref={panelRef}
-      className={cn(
-        embedded
-          ? 'flex flex-1 flex-col overflow-hidden bg-card'
-          : cn(
-            'absolute z-50 flex w-[320px] flex-col overflow-hidden rounded-xl border border-border bg-card/95 shadow-2xl backdrop-blur-sm',
-            !dragStyle && CORNER_CLASSES[panelCorner],
-          ),
-      )}
-      style={embedded ? undefined : { ...dragStyle, height: panelHeight }}
+      className="flex flex-1 flex-col overflow-hidden bg-card"
     >
       {/* --- Floating-only: Resize Handle + Draggable Header --- */}
       {!embedded && (
